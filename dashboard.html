@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f1ea;--card:#ffffff;--card2:#ede9df;
+  --border:rgba(0,0,0,0.08);--text:#18140a;--text2:#7a6e58;--text3:#b0a48c;
+  --gold:#9a7220;--golddim:rgba(154,114,32,0.10);
+  --green:#166534;--greenbg:#dcfce7;
+  --amber:#92400e;--amberbg:#fef3c7;
+  --red:#991b1b;--redbg:#fee2e2;
+  --r:14px;--rs:10px;
+}
+html,body{min-height:100%;background:var(--bg);}
+body{font-family:'Instrument Sans',sans-serif;color:var(--text);padding-bottom:40px;}
+.topbar{background:var(--text);padding:18px 16px 16px;display:flex;align-items:flex-end;justify-content:space-between;}
+.topbar-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;color:#f4f1ea;line-height:1;}
+.topbar-title em{color:#d4a83a;font-style:italic;}
+.topbar-right{text-align:right;}
+.topbar-meta{font-size:11px;color:rgba(244,241,234,0.45);line-height:1.4;}
+.refresh-btn{background:none;border:1px solid rgba(255,255,255,0.2);border-radius:99px;color:rgba(244,241,234,0.7);font-family:'Instrument Sans',sans-serif;font-size:11px;padding:5px 12px;cursor:pointer;margin-top:6px;display:block;-webkit-tap-highlight-color:transparent;}
+.refresh-btn:active{background:rgba(255,255,255,0.1);}
+.body{padding:16px;max-width:520px;margin:0 auto;}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.sum-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.sum-label{font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.sum-val{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--text);line-height:1;letter-spacing:-0.5px;}
+.sum-val .rm{font-family:'Instrument Sans',sans-serif;font-size:13px;font-weight:400;color:var(--text3);margin-right:2px;}
+.sum-sub{font-size:11px;color:var(--text2);margin-top:4px;}
+.sec-head{font-size:11px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin:20px 0 10px;display:flex;align-items:center;gap:8px;}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border);}
+.outlet-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;position:relative;overflow:hidden;animation:fadeUp 0.4s ease both;}
+.outlet-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--status-color,var(--gold));border-radius:3px 0 0 3px;}
+.outlet-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.outlet-name{font-size:15px;font-weight:500;color:var(--text);line-height:1.2;}
+.outlet-rank{font-size:11px;color:var(--text3);margin-top:2px;}
+.status-badge{font-size:11px;font-weight:500;padding:4px 10px;border-radius:99px;white-space:nowrap;flex-shrink:0;margin-left:8px;}
+.badge-ok{background:var(--greenbg);color:var(--green);}
+.badge-warn{background:var(--amberbg);color:var(--amber);}
+.badge-miss{background:var(--redbg);color:var(--red);}
+.stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.stat{background:var(--card2);border-radius:var(--rs);padding:10px 10px 8px;}
+.stat-label{font-size:10px;color:var(--text3);margin-bottom:4px;line-height:1;}
+.stat-val{font-size:15px;font-weight:500;color:var(--text);line-height:1;}
+.stat-val.accent{color:var(--gold);}
+.bar-wrap{margin-top:10px;height:4px;background:var(--card2);border-radius:99px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:99px;background:var(--gold);transition:width 0.6s ease;}
+.today-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.today-pill{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;display:flex;align-items:center;gap:10px;}
+.today-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-ok{background:#22c55e;}
+.dot-miss{background:#ef4444;}
+.today-info{flex:1;min-width:0;}
+.today-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.today-amt{font-size:12px;color:var(--text2);margin-top:1px;}
+.state-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:12px;text-align:center;padding:40px 20px;}
+.spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;}
+.state-label{font-size:14px;color:var(--text2);}
+.debug-box{margin:12px 0;padding:12px;background:#1a1a2e;color:#e8e6e0;font-family:monospace;font-size:11px;border-radius:10px;white-space:pre-wrap;word-break:break-all;}
+.debug-title{color:#d4a83a;margin-bottom:6px;font-size:10px;letter-spacing:1px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div><div class="topbar-title">Sales <em>Dashboard</em></div></div>
+  <div class="topbar-right">
+    <div class="topbar-meta" id="updated-label">Loading...</div>
+    <button class="refresh-btn" onclick="loadData()">↻ Refresh</button>
+  </div>
+</div>
+<div class="body" id="main-body">
+  <div class="state-screen"><div class="spinner"></div><div class="state-label">Loading sales data...</div></div>
+</div>
+<script>
+const OUTLETS=['Sandakan Prima','Sandakan Megah','Lahad Datu Nipah','Lahad Datu Perdana','Tawau','Tawau Bintang','Semporna'];
+const SHEET_CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSD586DnPC8D-SZZak14UKV7n8SPqosA5mi16PzSS3RLo12ZaDuCIGIhHNgvS6VqwfjsSJZrT9HM8My/pub?gid=0&single=true&output=csv';
+
+async function loadData(){
+  document.getElementById('main-body').innerHTML='<div class="state-screen"><div class="spinner"></div><div class="state-label">Loading...</div></div>';
+  try{
+    const res=await fetch(SHEET_CSV_URL+'&t='+Date.now());
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const text=await res.text();
+    const lines=text.trim().split('\n');
+
+    // Show debug so we can see raw data
+    const debugHtml=`<div class="debug-box"><div class="debug-title">RAW CSV — first 4 rows</div>${esc(lines.slice(0,4).join('\n'))}</div>`;
+
+    const rows=[];
+    for(let i=1;i<lines.length;i++){
+      const cols=splitCSVLine(lines[i]);
+      if(cols.length<4) continue;
+      const dateRaw=(cols[1]||'').trim();
+      const outlet=(cols[2]||'').trim();
+      const sales=parseFloat((cols[3]||'0').replace(/[^0-9.]/g,''))||0;
+      if(!outlet||!dateRaw) continue;
+      // normalize date — handles M/D/YYYY, YYYY-MM-DD, DD/MM/YYYY
+      const dateNorm=normalizeDate(dateRaw);
+      rows.push({date:dateNorm,outlet,sales});
+    }
+
+    const parsedHtml=`<div class="debug-box" style="background:#166534"><div class="debug-title" style="color:#86efac">PARSED — first 3 rows</div>${esc(JSON.stringify(rows.slice(0,3),null,2))}</div>`;
+
+    if(rows.length===0){
+      document.getElementById('main-body').innerHTML=debugHtml+parsedHtml+'<div class="state-screen"><div class="state-label">No data found. Check debug above.</div></div>';
+      return;
+    }
+    render(rows,debugHtml+parsedHtml);
+  }catch(e){
+    document.getElementById('main-body').innerHTML=`<div class="state-screen"><div class="state-label">Error: ${e.message}</div><button onclick="loadData()" style="margin-top:12px;padding:8px 20px;border:1px solid var(--border);border-radius:99px;background:var(--card);font-family:inherit;cursor:pointer;font-size:13px">Try again</button></div>`;
+  }
+}
+
+function splitCSVLine(line){
+  const result=[];
+  let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ;}
+    else if(c===','&&!inQ){result.push(cur);cur='';}
+    else{cur+=c;}
+  }
+  result.push(cur);
+  return result;
+}
+
+function normalizeDate(raw){
+  // already ISO
+  if(/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0,10);
+  // M/D/YYYY or MM/DD/YYYY
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(raw)){
+    const p=raw.split('/');
+    return p[2].slice(0,4)+'-'+p[0].padStart(2,'0')+'-'+p[1].padStart(2,'0');
+  }
+  // D/M/YYYY
+  if(/^\d{1,2}-\d{1,2}-\d{4}/.test(raw)){
+    const p=raw.split('-');
+    return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  // try native parse
+  const d=new Date(raw);
+  if(!isNaN(d)) return d.toISOString().slice(0,10);
+  return raw;
+}
+
+function render(rows, debugHtml){
+  const now=new Date();
+  const todayStr=now.toISOString().slice(0,10);
+  const monthStr=todayStr.slice(0,7);
+
+  const todayMap={},monthMap={},countMap={};
+  OUTLETS.forEach(o=>{todayMap[o]=0;monthMap[o]=0;countMap[o]=0;});
+
+  rows.forEach(r=>{
+    if(!OUTLETS.includes(r.outlet)) return;
+    if(r.date===todayStr) todayMap[r.outlet]+=r.sales;
+    if(r.date.slice(0,7)===monthStr){monthMap[r.outlet]+=r.sales;countMap[r.outlet]++;}
+  });
+
+  const todayTotal=Object.values(todayMap).reduce((a,b)=>a+b,0);
+  const monthTotal=Object.values(monthMap).reduce((a,b)=>a+b,0);
+  const avgMonth=monthTotal/OUTLETS.length;
+  const maxMonth=Math.max(...Object.values(monthMap),1);
+  const ranked=[...OUTLETS].sort((a,b)=>monthMap[b]-monthMap[a]);
+  const submittedToday=OUTLETS.filter(o=>todayMap[o]>0).length;
+
+  document.getElementById('updated-label').textContent=
+    now.toLocaleDateString('en-MY',{day:'numeric',month:'short'})+' · '+
+    now.toLocaleTimeString('en-MY',{hour:'2-digit',minute:'2-digit'});
+
+  let html=debugHtml;
+
+  html+=`<div class="summary">
+    <div class="sum-card">
+      <div class="sum-label">Today's total</div>
+      <div class="sum-val"><span class="rm">RM</span>${fmt(todayTotal)}</div>
+      <div class="sum-sub">${submittedToday} of ${OUTLETS.length} submitted</div>
+    </div>
+    <div class="sum-card">
+      <div class="sum-label">This month</div>
+      <div class="sum-val"><span class="rm">RM</span>${fmt(monthTotal)}</div>
+      <div class="sum-sub">${now.toLocaleDateString('en-MY',{month:'long',year:'numeric'})}</div>
+    </div>
+  </div>`;
+
+  html+=`<div class="sec-head">Outlet performance</div>`;
+  ranked.forEach((outlet,i)=>{
+    const today=todayMap[outlet],month=monthMap[outlet],count=countMap[outlet];
+    const avg=count>0?month/count:0;
+    const pct=Math.round((month/maxMonth)*100);
+    let sc,sl,scolor;
+    if(today===0){sc='badge-miss';sl='No report';scolor='#ef4444';}
+    else if(month<avgMonth*0.7){sc='badge-warn';sl='Below avg';scolor='#f59e0b';}
+    else{sc='badge-ok';sl='On track';scolor='#22c55e';}
+    html+=`<div class="outlet-card" style="--status-color:${scolor};animation-delay:${i*0.05}s">
+      <div class="outlet-top">
+        <div><div class="outlet-name">${outlet}</div><div class="outlet-rank">#${i+1} this month</div></div>
+        <span class="status-badge ${sc}">${sl}</span>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-label">Today</div><div class="stat-val${today>0?' accent':''}">${today>0?'RM '+fmt(today):'—'}</div></div>
+        <div class="stat"><div class="stat-label">This month</div><div class="stat-val">RM ${fmt(month)}</div></div>
+        <div class="stat"><div class="stat-label">Avg/day</div><div class="stat-val">RM ${fmt(avg)}</div></div>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  });
+
+  html+=`<div class="sec-head">Today's submissions</div><div class="today-grid">`;
+  OUTLETS.forEach(o=>{
+    const ok=todayMap[o]>0;
+    html+=`<div class="today-pill"><div class="today-dot ${ok?'dot-ok':'dot-miss'}"></div><div class="today-info"><div class="today-name">${o}</div><div class="today-amt">${ok?'RM '+fmt(todayMap[o]):'Not submitted'}</div></div></div>`;
+  });
+  html+=`</div>`;
+
+  document.getElementById('main-body').innerHTML=html;
+}
+
+function fmt(n){return Number(n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+loadData();
+</script>
+</body>
+</html>
