@@ -622,9 +622,10 @@ body.light .btn { color: #fff; }
     document.getElementById('success').classList.add('show');
 
     // 🔌 Replace with your Apps Script webhook:
-    // fetch('YOUR_WEBHOOK_URL', {method:'POST', body: JSON.stringify({date, outlet, totalSales: amt})})
-    console.log('→ Sheets:', { date, outlet, totalSales: amt });
-  }
+    fetch('https://script.google.com/macros/s/AKfycbx09KwiN2qgZ3s5PugylFe0xrkYkmfFtOo05tf8JAcWwlkVp1ehbA-qhPlX9AC3HI-WUw/exec', {
+  method: 'POST',
+  body: JSON.stringify({ date, outlet, totalSales: amt })
+});
 
   // Reset
   function reset() {
