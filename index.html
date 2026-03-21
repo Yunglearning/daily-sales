@@ -9,27 +9,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #0b0f14;
-  --bg2:       #111720;
-  --bg3:       #18202c;
-  --line:      rgba(255,255,255,0.07);
-  --line2:     rgba(255,255,255,0.13);
-  --gold:      #c9a84c;
-  --gold2:     #e8c96a;
-  --gold-dim:  rgba(201,168,76,0.12);
-  --gold-glow: rgba(201,168,76,0.22);
-  --text:      #e8e6e0;
-  --text2:     #7a7a7a;
-  --text3:     #484848;
-  --green:     #3ecf8e;
-  --green-dim: rgba(62,207,142,0.10);
-  --red:       #e05555;
-  --red-dim:   rgba(220,80,80,0.08);
-  --r:  16px;
-  --rs: 10px;
-}
-
-body.light {
   --bg:        #f4f1ea;
   --bg2:       #ffffff;
   --bg3:       #ede9df;
@@ -46,6 +25,8 @@ body.light {
   --green-dim: rgba(26,158,106,0.10);
   --red:       #c03030;
   --red-dim:   rgba(192,48,48,0.07);
+  --r:  16px;
+  --rs: 10px;
 }
 
 html, body { min-height: 100%; }
@@ -59,20 +40,118 @@ body {
   transition: background 0.35s, color 0.35s;
 }
 
+/* ─── POSTER BACKGROUND ─── */
+.poster-bg {
+  display: none;
+  position: fixed; inset: 0; z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.poster-bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: var(--poster-overlay, rgba(244,241,234,0.55));
+  backdrop-filter: blur(1.5px);
+  transition: background 0.4s;
+}
+.poster-bg.loaded { display: block; }
+
+/* ── when poster is DARK — flip to light-on-dark vars ── */
+body[data-poster="dark"] {
+  --text:      #f0ede6;
+  --text2:     #b8ae9e;
+  --text3:     #756b5c;
+  --gold:      #d4a83a;
+  --gold2:     #efc95a;
+  --gold-dim:  rgba(212,168,58,0.15);
+  --line:      rgba(255,255,255,0.09);
+  --line2:     rgba(255,255,255,0.16);
+  --bg2:       rgba(15,18,24,0.72);
+  --bg3:       rgba(25,30,40,0.65);
+  --poster-overlay: rgba(10,13,20,0.60);
+}
+
+/* ── when poster is LIGHT — keep legible dark-on-light vars ── */
+body[data-poster="light"] {
+  --text:      #18140a;
+  --text2:     #6a5e48;
+  --text3:     #a09480;
+  --gold:      #8a6418;
+  --gold2:     #6a4c0c;
+  --gold-dim:  rgba(138,100,24,0.10);
+  --line:      rgba(0,0,0,0.08);
+  --line2:     rgba(0,0,0,0.14);
+  --bg2:       rgba(255,252,245,0.80);
+  --bg3:       rgba(237,233,223,0.70);
+  --poster-overlay: rgba(244,241,234,0.52);
+}
+
+/* glass cards when poster loaded */
+.poster-bg.loaded ~ * .card {
+  background: var(--bg2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-color: var(--line2);
+}
+.poster-bg.loaded ~ * .header { background: transparent; }
+.poster-bg.loaded ~ * .datechip { background: var(--bg3); }
+.poster-bg.loaded ~ * .toggle-bar .poster-btn { background: var(--bg2); }
+
+/* smooth all colour transitions */
+body, .card, h1, h1 em, .sub, .datechip, .ctext, .tile,
+.ticker, .tlabel, .tval, .btn, .errmsg, .rrow, .rhead,
+.poster-btn, .toggle-bar { transition: color 0.3s, background 0.3s, border-color 0.3s; }
+.poster-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg2);
+  border: 1px dashed var(--line2);
+  border-radius: 99px;
+  padding: 6px 12px 6px 8px;
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 11px; font-weight: 400;
+  color: var(--text2);
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+.poster-btn:hover { border-color: var(--gold); color: var(--gold); }
+.poster-btn input[type="file"] {
+  position: absolute; inset: 0;
+  opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.poster-icon {
+  width: 18px; height: 18px;
+  background: var(--bg3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.poster-icon svg { width: 10px; height: 10px; }
+
+/* poster loaded — cards go glass */
+.poster-bg.loaded ~ * .card {
+  background: rgba(255, 252, 245, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.poster-bg.loaded ~ * .header {
+  background: transparent;
+}
+
 /* glows */
 .glow-top {
   position: fixed; top: -180px; left: 50%;
   transform: translateX(-50%);
   width: 560px; height: 560px;
-  background: radial-gradient(ellipse, rgba(201,168,76,0.055) 0%, transparent 68%);
+  background: radial-gradient(ellipse, rgba(154,114,32,0.07) 0%, transparent 68%);
   pointer-events: none; z-index: 0;
-  transition: opacity 0.35s;
 }
-body.light .glow-top { opacity: 0.4; }
 .glow-bot {
   position: fixed; bottom: -80px; right: -80px;
   width: 360px; height: 360px;
-  background: radial-gradient(ellipse, rgba(62,207,142,0.04) 0%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(26,158,106,0.05) 0%, transparent 70%);
   pointer-events: none; z-index: 0;
 }
 
@@ -83,40 +162,14 @@ body.light .glow-top { opacity: 0.4; }
   opacity: 0.45;
 }
 
-/* ─── THEME TOGGLE ─── */
+/* ─── WRAP ─── */
 .toggle-bar {
   position: relative; z-index: 10;
-  display: flex; justify-content: flex-end;
+  display: flex; justify-content: flex-end; align-items: center;
   padding: 18px 20px 0;
   max-width: 420px; margin: 0 auto;
 }
-.theme-btn {
-  display: flex; align-items: center; gap: 7px;
-  background: var(--bg2);
-  border: 1px solid var(--line2);
-  border-radius: 99px;
-  padding: 6px 12px 6px 8px;
-  cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
-  color: var(--text2);
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-}
-.theme-btn:hover { border-color: var(--gold); color: var(--text); }
-.theme-icon {
-  width: 18px; height: 18px;
-  background: var(--bg3);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.3s;
-}
-.theme-icon svg { width: 10px; height: 10px; transition: opacity 0.2s; }
-.icon-moon { display: block; }
-.icon-sun  { display: none; }
-body.light .icon-moon { display: none; }
-body.light .icon-sun  { display: block; }
 
-/* ─── WRAP ─── */
 .wrap {
   position: relative; z-index: 2;
   max-width: 420px; margin: 0 auto;
@@ -430,22 +483,20 @@ body.light .btn { color: #fff; }
 <div class="glow-top"></div>
 <div class="glow-bot"></div>
 <div class="grain"></div>
+<div class="poster-bg" id="poster-bg"></div>
 
-<!-- THEME TOGGLE -->
+<!-- POSTER UPLOAD -->
 <div class="toggle-bar">
-  <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
-    <div class="theme-icon">
-      <!-- Moon (dark mode) -->
-      <svg class="icon-moon" viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round">
-        <path d="M13.5 10A6 6 0 016 2.5a6 6 0 100 11 6 6 0 007.5-3.5z"/>
-      </svg>
-      <!-- Sun (light mode) -->
-      <svg class="icon-sun" viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round">
-        <circle cx="8" cy="8" r="3"/>
-        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+  <button class="poster-btn" id="poster-btn" aria-label="Upload poster">
+    <input type="file" accept="image/*" onchange="loadPoster(event)" id="poster-input">
+    <div class="poster-icon">
+      <svg viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="12" height="10" rx="2"/>
+        <path d="M2 10l3-3 2.5 2.5L10 7l4 4"/>
+        <circle cx="11" cy="6" r="1"/>
       </svg>
     </div>
-    <span id="theme-label">Light</span>
+    <span id="poster-label">Upload poster</span>
   </button>
 </div>
 
@@ -568,12 +619,40 @@ body.light .btn { color: #fff; }
   document.getElementById('dchip').textContent =
     today.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long'});
 
-  // Theme toggle
-  let isLight = false;
-  function toggleTheme() {
-    isLight = !isLight;
-    document.body.classList.toggle('light', isLight);
-    document.getElementById('theme-label').textContent = isLight ? 'Dark' : 'Light';
+  // Poster background — auto detects brightness and adjusts font colours
+  function loadPoster(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const bg = document.getElementById('poster-bg');
+      bg.style.backgroundImage = `url('${ev.target.result}')`;
+      bg.classList.add('loaded');
+      document.getElementById('poster-label').textContent = 'Change poster';
+
+      // Sample image brightness via canvas
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        const SIZE = 40; // sample at 40x40 for speed
+        canvas.width = SIZE; canvas.height = SIZE;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, SIZE, SIZE);
+        const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+        let total = 0;
+        const pixels = SIZE * SIZE;
+        for (let i = 0; i < data.length; i += 4) {
+          // perceived brightness formula
+          total += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+        }
+        const avg = total / pixels; // 0 = black, 255 = white
+        // If avg brightness > 140 → poster is light → use dark text
+        // If avg brightness ≤ 140 → poster is dark → use light text
+        document.body.setAttribute('data-poster', avg > 140 ? 'light' : 'dark');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   // Outlet
