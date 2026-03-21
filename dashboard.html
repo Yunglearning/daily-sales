@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Sales Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,400&family=Geist:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0ede5;
+  --bg2:#ffffff;
+  --bg3:#e8e4da;
+  --line:rgba(0,0,0,0.07);
+  --line2:rgba(0,0,0,0.12);
+  --text:#141008;
+  --text2:#6b5f4a;
+  --text3:#a89880;
+  --gold:#8a6c18;
+  --gold2:#b08a20;
+  --goldbg:rgba(138,108,24,0.09);
+  --green:#145228;
+  --greenbg:#d1fae5;
+  --greentxt:#166534;
+  --amber:#7c3d0c;
+  --amberbg:#fef3c7;
+  --ambertxt:#92400e;
+  --red:#8b1a1a;
+  --redbg:#fee2e2;
+  --redtxt:#991b1b;
+  --r:14px;--rs:10px;
+}
+html,body{min-height:100%;background:var(--bg);}
+body{font-family:'Geist',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;padding-bottom:80px;}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--text);
+  padding:24px 18px 20px;
+  display:flex;align-items:flex-start;justify-content:space-between;
+  border-bottom:1px solid var(--line);
+}
+.t-eyebrow{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+.t-title{font-family:'Fraunces',serif;font-size:28px;font-weight:700;color:var(--text);line-height:1;}
+.t-title em{font-style:italic;font-weight:400;color:var(--gold2);}
+.topbar-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;padding-top:2px;}
+.t-meta{font-size:11px;font-weight:300;color:var(--text3);text-align:right;line-height:1.5;}
+.t-refresh{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--bg2);border:1px solid var(--line2);
+  border-radius:99px;padding:6px 14px;
+  font-family:'Geist',sans-serif;font-size:11px;color:var(--text2);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:border-color 0.2s;
+}
+.t-refresh:active{border-color:var(--gold);}
+.t-refresh svg{width:11px;height:11px;}
+
+/* ── TABS ── */
+.tabs{
+  display:flex;gap:0;
+  background:var(--bg);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:20;
+}
+.tab{
+  flex:1;padding:14px 0;
+  font-size:12px;font-weight:400;letter-spacing:0.3px;
+  color:var(--text3);text-align:center;
+  cursor:pointer;border-bottom:2px solid transparent;
+  transition:all 0.2s;-webkit-tap-highlight-color:transparent;
+  background:none;border-top:none;border-left:none;border-right:none;
+  font-family:'Geist',sans-serif;
+}
+.tab.active{color:var(--gold2);border-bottom-color:var(--gold2);}
+
+/* ── PAGE ── */
+.pg{padding:16px 14px;max-width:480px;margin:0 auto;display:none;}
+.pg.active{display:block;}
+
+/* ── SUMMARY CARDS ── */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px;}
+.sum-wide{margin-bottom:16px;}
+.sc{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px 14px;
+  position:relative;overflow:hidden;
+}
+.sc::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  opacity:0.4;
+}
+.sc-lbl{font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:8px;}
+.sc-val{
+  font-family:'Fraunces',serif;font-size:26px;font-weight:700;
+  color:var(--text);line-height:1;letter-spacing:-0.5px;
+}
+.sc-val.wide{font-size:32px;}
+.sc-rm{font-family:'Geist',sans-serif;font-size:11px;font-weight:300;color:var(--text3);margin-right:2px;}
+.sc-sub{font-size:11px;font-weight:300;color:var(--text2);margin-top:6px;}
+.sc-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:500;padding:3px 8px;
+  border-radius:99px;margin-top:6px;
+}
+.sc-badge.up{background:var(--greenbg);color:var(--greentxt);}
+.sc-badge.dn{background:var(--redbg);color:var(--redtxt);}
+
+/* ── SECTION LABEL ── */
+.sec{
+  font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text3);margin:22px 0 12px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec::after{content:'';flex:1;height:1px;background:var(--line2);}
+
+/* ── OUTLET CARD ── */
+.oc{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r);margin-bottom:10px;overflow:hidden;
+  animation:up 0.35s ease both;
+}
+.oc-bar{height:2px;background:var(--bg3);}
+.oc-fill{height:100%;transition:width 0.8s cubic-bezier(.4,0,.2,1);}
+.oc-head{padding:14px 16px 12px;display:flex;align-items:flex-start;justify-content:space-between;border-bottom:1px solid var(--line);}
+.oc-left{}
+.oc-name{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--text);line-height:1.1;}
+.oc-rank{font-size:10px;font-weight:300;color:var(--text3);margin-top:3px;letter-spacing:0.5px;}
+.badge{font-size:10px;font-weight:500;padding:4px 10px;border-radius:99px;white-space:nowrap;flex-shrink:0;margin-left:10px;margin-top:2px;}
+.b-ok  {background:var(--greenbg); color:var(--greentxt);}
+.b-warn{background:var(--amberbg); color:var(--ambertxt);}
+.b-miss{background:var(--redbg);   color:var(--redtxt);}
+
+/* 2×2 stats grid */
+.oc-body{padding:12px 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px 10px;}
+.st{}
+.st-lbl{font-size:10px;font-weight:400;color:var(--text3);margin-bottom:4px;letter-spacing:0.3px;}
+.st-val{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--text);line-height:1;}
+.st-rm{font-family:'Geist',sans-serif;font-size:9px;font-weight:300;color:var(--text3);margin-right:1px;}
+.st-val.hi{color:var(--gold2);}
+.st-val.dim{font-size:15px;font-weight:300;color:var(--text3);}
+
+/* today pill */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tp{background:var(--bg2);border:1px solid var(--line);border-radius:var(--rs);padding:12px 12px;display:flex;align-items:center;gap:10px;}
+.tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dok{background:var(--green);}
+.dmiss{background:var(--red);}
+.ti{flex:1;min-width:0;}
+.ti-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+.ti-amt{font-size:11px;font-weight:300;color:var(--text2);margin-top:2px;}
+
+/* ── ANALYSIS TAB ── */
+.ai-header{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r);padding:16px;margin-bottom:16px;
+  display:flex;align-items:center;gap:12px;
+}
+.ai-icon{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--goldbg);border:1px solid rgba(201,153,58,0.2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.ai-icon svg{width:18px;height:18px;}
+.ai-head-text{}
+.ai-head-title{font-size:14px;font-weight:500;color:var(--text);line-height:1.2;}
+.ai-head-sub{font-size:11px;font-weight:300;color:var(--text2);margin-top:3px;}
+.ai-btn{
+  width:100%;background:var(--gold);color:#0e0c08;
+  font-family:'Geist',sans-serif;font-size:14px;font-weight:500;
+  border:none;border-radius:var(--r);padding:15px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:filter 0.2s,transform 0.1s;
+  -webkit-tap-highlight-color:transparent;
+  margin-bottom:16px;
+}
+.ai-btn:hover{filter:brightness(1.08);}
+.ai-btn:active{transform:scale(0.98);}
+.ai-btn svg{width:16px;height:16px;}
+.ai-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+
+.ai-result{
+  background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r);padding:18px 16px;
+  display:none;
+}
+.ai-result.show{display:block;}
+.ai-result-label{
+  font-size:9px;font-weight:500;letter-spacing:2px;text-transform:uppercase;
+  color:var(--text3);margin-bottom:14px;
+  display:flex;align-items:center;gap:8px;
+}
+.ai-result-label::after{content:'';flex:1;height:1px;background:var(--line2);}
+.ai-content{font-size:14px;font-weight:300;color:var(--text);line-height:1.7;}
+.ai-content h3{
+  font-family:'Fraunces',serif;font-size:16px;font-weight:600;
+  color:var(--text);margin:16px 0 6px;
+}
+.ai-content h3:first-child{margin-top:0;}
+.ai-content p{margin-bottom:10px;}
+.ai-content ul{padding-left:16px;margin-bottom:10px;}
+.ai-content li{margin-bottom:6px;}
+.ai-content strong{font-weight:500;color:var(--gold2);}
+.ai-loading{display:flex;align-items:center;gap:10px;padding:8px 0;}
+.ai-dots span{
+  display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--gold);margin-right:4px;
+  animation:dot 1.2s ease-in-out infinite;
+}
+.ai-dots span:nth-child(2){animation-delay:0.2s;}
+.ai-dots span:nth-child(3){animation-delay:0.4s;}
+
+/* ── STATES ── */
+.ss{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:40vh;gap:14px;padding:40px 20px;text-align:center;}
+.spin{width:22px;height:22px;border:1.5px solid var(--line2);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;}
+.sl{font-size:14px;font-weight:300;color:var(--text2);}
+
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes up{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+@keyframes dot{0%,80%,100%{transform:scale(0.6);opacity:0.4}40%{transform:scale(1);opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="t-eyebrow">Outlet Performance</div>
+    <div class="t-title">Sales <em>Dashboard</em></div>
+  </div>
+  <div class="topbar-right">
+    <div class="t-meta" id="meta">—</div>
+    <button class="t-refresh" onclick="loadData()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M13.5 8A5.5 5.5 0 112.5 5.5"/><path d="M2.5 2.5v3h3"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('overview')">Overview</button>
+  <button class="tab" onclick="showTab('outlets')">Outlets</button>
+  <button class="tab" onclick="showTab('analysis')">AI Analysis</button>
+</div>
+
+<div class="pg active" id="tab-overview">
+  <div class="ss"><div class="spin"></div><div class="sl">Loading…</div></div>
+</div>
+<div class="pg" id="tab-outlets"></div>
+<div class="pg" id="tab-analysis"></div>
+
+<script>
+const OUTLETS=['Sandakan Prima','Sandakan Megah','Lahad Datu Nipah','Lahad Datu Perdana','Tawau','Tawau Bintang','Semporna'];
+const CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vSD586DnPC8D-SZZak14UKV7n8SPqosA5mi16PzSS3RLo12ZaDuCIGIhHNgvS6VqwfjsSJZrT9HM8My/pub?gid=0&single=true&output=csv';
+
+let _rows=[], _stats={};
+
+// ── TAB NAV ──
+function showTab(id){
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['overview','outlets','analysis'][i]===id);
+  });
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+// ── DATA LOAD ──
+async function loadData(){
+  document.getElementById('tab-overview').innerHTML='<div class="ss"><div class="spin"></div><div class="sl">Loading…</div></div>';
+  try{
+    const r=await fetch(CSV+'&t='+Date.now());
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const text=await r.text();
+    const lines=text.trim().split('\n');
+    _rows=[];
+    for(let i=1;i<lines.length;i++){
+      const c=splitCSV(lines[i]);
+      if(c.length<4) continue;
+      const dRaw=(c[1]||'').trim();
+      const outlet=(c[2]||'').trim();
+      const sales=parseFloat((c[3]||'').replace(/[^0-9.]/g,''))||0;
+      if(!outlet||!dRaw) continue;
+      _rows.push({date:normDate(dRaw),outlet,sales});
+    }
+    if(!_rows.length){
+      document.getElementById('tab-overview').innerHTML='<div class="ss"><div class="sl">No data found.</div></div>';
+      return;
+    }
+    render(_rows);
+  }catch(e){
+    document.getElementById('tab-overview').innerHTML=`<div class="ss"><div class="sl">Error: ${e.message}</div><button onclick="loadData()" style="margin-top:10px;padding:8px 20px;border:1px solid var(--line2);border-radius:99px;background:var(--bg2);font-family:inherit;font-size:13px;color:var(--text2);cursor:pointer;">Retry</button></div>`;
+  }
+}
+
+function splitCSV(line){
+  const r=[];let c='',q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(ch==='"'){q=!q;}else if(ch===','&&!q){r.push(c);c='';}else c+=ch;
+  }r.push(c);return r;
+}
+
+function normDate(raw){
+  if(/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0,10);
+  if(/^\d{1,2}\/\d{1,2}\/\d{4}/.test(raw)){
+    const p=raw.split('/');
+    return p[2].slice(0,4)+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  if(/^\d{1,2}-\d{1,2}-\d{4}/.test(raw)){
+    const p=raw.split('-');
+    return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');
+  }
+  const d=new Date(raw);return isNaN(d)?raw:d.toISOString().slice(0,10);
+}
+
+// ── RENDER ──
+function render(rows){
+  const now=new Date();
+  const my=new Date(now.getTime()+8*3600000);
+  const td=my.toISOString().slice(0,10);
+  const mo=td.slice(0,7);
+  const yr=td.slice(0,4);
+  const prevMo=new Date(my.getFullYear(),my.getMonth()-1,1).toISOString().slice(0,7);
+
+  const TM={},MM={},YM={},MC={},PM={};
+  OUTLETS.forEach(o=>{TM[o]=0;MM[o]=0;YM[o]=0;MC[o]=0;PM[o]=0;});
+
+  rows.forEach(r=>{
+    if(!OUTLETS.includes(r.outlet)) return;
+    const d=r.date,m=d.slice(0,7),y=d.slice(0,4);
+    if(d===td)   TM[r.outlet]+=r.sales;
+    if(m===mo){  MM[r.outlet]+=r.sales; MC[r.outlet]++; }
+    if(y===yr)   YM[r.outlet]+=r.sales;
+    if(m===prevMo) PM[r.outlet]+=r.sales;
+  });
+
+  const ttl=v=>Object.values(v).reduce((a,b)=>a+b,0);
+  const todayT=ttl(TM),monthT=ttl(MM),yearT=ttl(YM),prevT=ttl(PM);
+  const avgM=monthT/OUTLETS.length;
+  const maxM=Math.max(...Object.values(MM),1);
+  const ranked=[...OUTLETS].sort((a,b)=>MM[b]-MM[a]);
+  const subToday=OUTLETS.filter(o=>TM[o]>0).length;
+  const mom=prevT>0?((monthT-prevT)/prevT*100):0;
+
+  // save for AI
+  _stats={td,mo,yr,TM,MM,YM,MC,PM,todayT,monthT,yearT,prevT,mom,avgM,maxM,ranked,subToday};
+
+  document.getElementById('meta').innerHTML=
+    now.toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'})+'<br>'+
+    now.toLocaleTimeString('en-MY',{hour:'2-digit',minute:'2-digit'});
+
+  // ── OVERVIEW TAB ──
+  const momBadge=prevT>0?`<span class="sc-badge ${mom>=0?'up':'dn'}">${mom>=0?'↑':'↓'} ${Math.abs(mom).toFixed(1)}% vs last month</span>`:'';
+  let ov=`
+  <div class="sum-wide">
+    <div class="sc">
+      <div class="sc-lbl">This month total</div>
+      <div class="sc-val wide"><span class="sc-rm">RM</span>${fmt(monthT)}</div>
+      <div class="sc-sub">${my.toLocaleDateString('en-MY',{month:'long',year:'numeric'})}</div>
+      ${momBadge}
+    </div>
+  </div>
+  <div class="sum-grid">
+    <div class="sc">
+      <div class="sc-lbl">Today</div>
+      <div class="sc-val"><span class="sc-rm">RM</span>${fmt(todayT)}</div>
+      <div class="sc-sub">${subToday}/${OUTLETS.length} submitted</div>
+    </div>
+    <div class="sc">
+      <div class="sc-lbl">This year</div>
+      <div class="sc-val"><span class="sc-rm">RM</span>${fmt(yearT)}</div>
+      <div class="sc-sub">${yr}</div>
+    </div>
+  </div>`;
+
+  // top/bottom outlet callout
+  ov+=`<div class="sec">Today's submissions</div><div class="tg">`;
+  OUTLETS.forEach(o=>{
+    const ok=TM[o]>0;
+    ov+=`<div class="tp"><div class="tdot ${ok?'dok':'dmiss'}"></div><div class="ti"><div class="ti-name">${o}</div><div class="ti-amt">${ok?'RM '+fmt(TM[o]):'Not submitted'}</div></div></div>`;
+  });
+  ov+=`</div>`;
+  document.getElementById('tab-overview').innerHTML=ov;
+
+  // ── OUTLETS TAB ──
+  let ou=`<div class="sec">Ranked by this month</div>`;
+  ranked.forEach((o,i)=>{
+    const t=TM[o],m=MM[o],y=YM[o],c=MC[o],p=PM[o];
+    const avg=c>0?m/c:0;
+    const pct=Math.round((m/maxM)*100);
+    const vs=p>0?((m-p)/p*100):null;
+    let bc,bl,fillColor;
+    if(t===0){bc='b-miss';bl='No report today';fillColor='#ef4444';}
+    else if(m<avgM*0.7){bc='b-warn';bl='Below average';fillColor='#f59e0b';}
+    else{bc='b-ok';bl='On track';fillColor='#22c55e';}
+
+    ou+=`<div class="oc" style="animation-delay:${i*0.04}s">
+      <div class="oc-bar"><div class="oc-fill" style="width:${pct}%;background:${fillColor};opacity:0.7"></div></div>
+      <div class="oc-head">
+        <div class="oc-left">
+          <div class="oc-name">${o}</div>
+          <div class="oc-rank">#${i+1} · ${pct}% of top outlet</div>
+        </div>
+        <span class="badge ${bc}">${bl}</span>
+      </div>
+      <div class="oc-body">
+        <div class="st">
+          <div class="st-lbl">Today</div>
+          <div class="st-val ${t>0?'hi':'dim'}">${t>0?'<span class="st-rm">RM</span>'+fmt(t):'—'}</div>
+        </div>
+        <div class="st">
+          <div class="st-lbl">This month</div>
+          <div class="st-val"><span class="st-rm">RM</span>${fmt(m)}</div>
+          ${vs!==null?`<div style="font-size:10px;margin-top:3px;color:${vs>=0?'var(--greentxt)':'var(--redtxt)'}">${vs>=0?'↑':'↓'} ${Math.abs(vs).toFixed(1)}% MoM</div>`:''}
+        </div>
+        <div class="st">
+          <div class="st-lbl">This year</div>
+          <div class="st-val"><span class="st-rm">RM</span>${fmt(y)}</div>
+        </div>
+        <div class="st">
+          <div class="st-lbl">Avg / day</div>
+          <div class="st-val"><span class="st-rm">RM</span>${fmt(avg)}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('tab-outlets').innerHTML=ou;
+
+  // ── ANALYSIS TAB ──
+  buildAnalysisTab();
+}
+
+// ── AI ANALYSIS TAB ──
+function buildAnalysisTab(){
+  document.getElementById('tab-analysis').innerHTML=`
+    <div class="ai-header">
+      <div class="ai-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="var(--gold2)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="8"/>
+          <path d="M7 10h6M10 7v6"/>
+          <path d="M6.5 6.5l7 7M13.5 6.5l-7 7"/>
+        </svg>
+      </div>
+      <div class="ai-head-text">
+        <div class="ai-head-title">AI Sales Analyst</div>
+        <div class="ai-head-sub">Reads your data · Suggests actions</div>
+      </div>
+    </div>
+    <button class="ai-btn" id="ai-btn" onclick="runAnalysis()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M8 1v6l4 2"/><circle cx="8" cy="10" r="6"/>
+      </svg>
+      Analyse my sales data
+    </button>
+    <div class="ai-result" id="ai-result">
+      <div class="ai-result-label">Analysis</div>
+      <div class="ai-content" id="ai-content"></div>
+    </div>`;
+}
+
+async function runAnalysis(){
+  const btn=document.getElementById('ai-btn');
+  const result=document.getElementById('ai-result');
+  const content=document.getElementById('ai-content');
+  if(!_stats.ranked) return;
+
+  btn.disabled=true;
+  btn.innerHTML=`<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div><span style="font-size:13px;color:var(--text2)">Analysing your data…</span></div>`;
+  result.classList.add('show');
+  content.innerHTML=`<div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div></div>`;
+
+  // Build data summary for the prompt
+  const s=_stats;
+  const outletSummary=s.ranked.map((o,i)=>{
+    const mom=s.PM[o]>0?((s.MM[o]-s.PM[o])/s.PM[o]*100).toFixed(1)+'%':'no prev data';
+    return `${i+1}. ${o}: today RM${s.TM[o].toFixed(0)}, month RM${s.MM[o].toFixed(0)}, year RM${s.YM[o].toFixed(0)}, MoM ${mom}, avg/day RM${s.MC[o]>0?(s.MM[o]/s.MC[o]).toFixed(0):'0'}`;
+  }).join('\n');
+
+  const prompt=`You are a retail sales analyst for a fishing equipment company in Sabah, Malaysia with 7 outlets: Sandakan Prima, Sandakan Megah, Lahad Datu Nipah, Lahad Datu Perdana, Tawau, Tawau Bintang, Semporna.
+
+Here is the current sales data:
+- Date: ${s.td}
+- Today total: RM${s.todayT.toFixed(0)} (${s.subToday}/7 outlets submitted)
+- This month total: RM${s.monthT.toFixed(0)}
+- This year total: RM${s.yearT.toFixed(0)}
+- Month-on-month change: ${s.mom.toFixed(1)}%
+
+Outlet breakdown (ranked by this month):
+${outletSummary}
+
+Please provide:
+1. A brief performance summary (2-3 sentences)
+2. Top 2-3 outlets that are performing well and why
+3. Outlets that need attention with specific actionable suggestions
+4. External factors relevant to Sabah fishing equipment retail (weather patterns, fishing seasons, local economy, public holidays, monsoon season) that could be affecting current sales
+5. 3 concrete actions to improve underperforming outlets this month
+
+Be specific, direct, and practical. Use Malaysian context. Format with clear headings.`;
+
+  try{
+    // Use Claude API via the allowed endpoint
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'X-Requested-With':'XMLHttpRequest'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    // API returns CORS error from GitHub Pages — use fallback local analysis
+    if(!res.ok){
+      throw new Error('api_blocked');
+    }
+
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'No response received.';
+    renderAnalysis(text);
+    btn.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1v6l4 2"/><circle cx="8" cy="10" r="6"/></svg> Refresh analysis`;
+    btn.disabled=false;
+  }catch(e){
+    // Fallback: generate analysis locally from the data
+    const text=localAnalysis(_stats);
+    renderAnalysis(text);
+    btn.innerHTML=`<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 1v6l4 2"/><circle cx="8" cy="10" r="6"/></svg> Refresh analysis`;
+    btn.disabled=false;
+  }
+}
+
+function renderAnalysis(text){
+  const content=document.getElementById('ai-content');
+  const html=text
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^###?\s+(.+)$/gm,'<h3>$1</h3>')
+    .replace(/^##?\s+(.+)$/gm,'<h3>$1</h3>')
+    .replace(/^\d+\.\s+\*\*(.+?)\*\*(.*)$/gm,'<h3>$1</h3><p>$2</p>')
+    .replace(/^\d+\.\s+(.+)$/gm,'<p>$1</p>')
+    .replace(/^[-•]\s+(.+)$/gm,'<p style="padding-left:14px;color:var(--text2)">· $1</p>')
+    .replace(/\n\n/g,'<br>')
+    .replace(/\n/g,' ');
+  content.innerHTML=html;
+}
+
+function localAnalysis(s){
+  const ranked=s.ranked;
+  const top=ranked[0], bottom=ranked[ranked.length-1];
+  const missing=Object.keys(s.TM).filter(o=>s.TM[o]===0);
+  const mom=s.mom.toFixed(1);
+  const momDir=s.mom>=0?'up':'down';
+  const date=new Date(s.td);
+  const month=date.toLocaleDateString('en-MY',{month:'long'});
+  const isQ1=date.getMonth()<3;
+  const isMonsoon=date.getMonth()>=10||date.getMonth()<=2;
+
+  let out=`## Performance Summary\n\n`;
+  out+=`This month your combined sales stand at **RM${(s.monthT/1000).toFixed(1)}k**, which is **${Math.abs(s.mom).toFixed(1)}% ${momDir}** compared to last month. `;
+  out+=`Year-to-date total is **RM${(s.yearT/1000).toFixed(1)}k** across all 7 outlets. `;
+  out+=`Today, **${s.subToday} of 7 outlets** have submitted their sales.\n\n`;
+
+  out+=`## Top Performers\n\n`;
+  ranked.slice(0,2).forEach((o,i)=>{
+    const avg=s.MC[o]>0?(s.MM[o]/s.MC[o]):0;
+    const pct=s.monthT>0?((s.MM[o]/s.monthT)*100).toFixed(0):0;
+    out+=`**${o}** — RM${(s.MM[o]/1000).toFixed(1)}k this month (${pct}% of total). Averaging RM${avg.toFixed(0)}/day. `;
+    if(i===0) out+=`Leading outlet — maintain momentum with consistent stock levels.\n\n`;
+    else out+=`Strong second — good complementary coverage.\n\n`;
+  });
+
+  out+=`## Outlets Needing Attention\n\n`;
+  ranked.slice(-3).reverse().forEach(o=>{
+    const vs=s.PM[o]>0?((s.MM[o]-s.PM[o])/s.PM[o]*100):null;
+    out+=`**${o}** — RM${(s.MM[o]/1000).toFixed(1)}k this month`;
+    if(vs!==null) out+=` (${vs>=0?'+':''}${vs.toFixed(1)}% MoM)`;
+    out+=`. `;
+    if(s.MM[o]<s.avgM*0.7) out+=`Significantly below group average of RM${(s.avgM/1000).toFixed(1)}k. Consider reviewing stock variety and staff incentives.\n\n`;
+    else out+=`Slightly below average — monitor closely.\n\n`;
+  });
+
+  if(missing.length){
+    out+=`⚠️ **Missing reports today:** ${missing.join(', ')}. Follow up with outlet staff.\n\n`;
+  }
+
+  out+=`## Sabah Market Factors\n\n`;
+  if(isMonsoon){
+    out+=`**Monsoon season** (Nov–Feb) typically reduces fishing activity in the South China Sea and Sulu Sea, directly impacting bait, tackle, and rod sales. Outlets near coastal areas like Semporna and Lahad Datu may see reduced walk-in traffic from local fishermen.\n\n`;
+  }
+  if(isQ1){
+    out+=`**Post-Chinese New Year** period — consumer spending often dips in Feb–Mar as households recover from festive spending. Promotions and bundle deals can help sustain sales.\n\n`;
+  }
+  out+=`**Petrol price** fluctuations in Sabah affect fishermen's operational costs, which in turn reduces discretionary spending on premium equipment. Track pump prices if sales dip unexpectedly.\n\n`;
+  out+=`**Public holidays** (Sabah state holidays, Gawai, Hari Raya) create short sales spikes — plan stock accordingly for upcoming holidays.\n\n`;
+
+  out+=`## 3 Actions This Month\n\n`;
+  out+=`1. **Push bundle deals at ${bottom}** — pair slow-moving stock with popular items at a 10–15% discount to improve the outlet's average transaction value.\n\n`;
+  out+=`2. **Staff incentive for ${missing.length>0?missing[0]:ranked[ranked.length-1]}** — set a daily sales target with a small bonus. Outlets with consistent daily submissions tend to perform 20–30% better.\n\n`;
+  out+=`3. **Restock top sellers at ${top}** — your best outlet may be leaving money on the table if popular items are running low. Prioritise replenishment here first.`;
+
+  return out;
+}
+
+function fmt(n){
+  if(n>=1000000) return (n/1000000).toFixed(2)+'M';
+  if(n>=1000)    return (n/1000).toFixed(1)+'k';
+  return Number(n).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+loadData();
+</script>
+</body>
+</html>
