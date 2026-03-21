@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Sales Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,500;1,600&family=Instrument+Sans:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0b0f14;
+  --bg2:       #111720;
+  --bg3:       #18202c;
+  --line:      rgba(255,255,255,0.07);
+  --line2:     rgba(255,255,255,0.13);
+  --gold:      #c9a84c;
+  --gold2:     #e8c96a;
+  --gold-dim:  rgba(201,168,76,0.12);
+  --gold-glow: rgba(201,168,76,0.22);
+  --text:      #e8e6e0;
+  --text2:     #7a7a7a;
+  --text3:     #484848;
+  --green:     #3ecf8e;
+  --green-dim: rgba(62,207,142,0.10);
+  --red:       #e05555;
+  --red-dim:   rgba(220,80,80,0.08);
+  --r:  16px;
+  --rs: 10px;
+}
+
+body.light {
+  --bg:        #f4f1ea;
+  --bg2:       #ffffff;
+  --bg3:       #ede9df;
+  --line:      rgba(0,0,0,0.07);
+  --line2:     rgba(0,0,0,0.11);
+  --gold:      #9a7220;
+  --gold2:     #6e500e;
+  --gold-dim:  rgba(154,114,32,0.10);
+  --gold-glow: rgba(154,114,32,0.16);
+  --text:      #18140a;
+  --text2:     #7a6e58;
+  --text3:     #b0a48c;
+  --green:     #1a9e6a;
+  --green-dim: rgba(26,158,106,0.10);
+  --red:       #c03030;
+  --red-dim:   rgba(192,48,48,0.07);
+}
+
+html, body { min-height: 100%; }
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 80px;
+  position: relative;
+  overflow-x: hidden;
+  transition: background 0.35s, color 0.35s;
+}
+
+/* glows */
+.glow-top {
+  position: fixed; top: -180px; left: 50%;
+  transform: translateX(-50%);
+  width: 560px; height: 560px;
+  background: radial-gradient(ellipse, rgba(201,168,76,0.055) 0%, transparent 68%);
+  pointer-events: none; z-index: 0;
+  transition: opacity 0.35s;
+}
+body.light .glow-top { opacity: 0.4; }
+.glow-bot {
+  position: fixed; bottom: -80px; right: -80px;
+  width: 360px; height: 360px;
+  background: radial-gradient(ellipse, rgba(62,207,142,0.04) 0%, transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* grain */
+.grain {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.45;
+}
+
+/* ─── THEME TOGGLE ─── */
+.toggle-bar {
+  position: relative; z-index: 10;
+  display: flex; justify-content: flex-end;
+  padding: 18px 20px 0;
+  max-width: 420px; margin: 0 auto;
+}
+.theme-btn {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg2);
+  border: 1px solid var(--line2);
+  border-radius: 99px;
+  padding: 6px 12px 6px 8px;
+  cursor: pointer;
+  font-family: 'Instrument Sans', sans-serif;
+  color: var(--text2);
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-btn:hover { border-color: var(--gold); color: var(--text); }
+.theme-icon {
+  width: 18px; height: 18px;
+  background: var(--bg3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.3s;
+}
+.theme-icon svg { width: 10px; height: 10px; transition: opacity 0.2s; }
+.icon-moon { display: block; }
+.icon-sun  { display: none; }
+body.light .icon-moon { display: none; }
+body.light .icon-sun  { display: block; }
+
+/* ─── WRAP ─── */
+.wrap {
+  position: relative; z-index: 2;
+  max-width: 420px; margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ─── HEADER ─── */
+.header {
+  position: relative; z-index: 2;
+  max-width: 420px; margin: 0 auto;
+  padding: 36px 16px 32px;
+  text-align: center;
+  animation: up 0.55s ease both;
+}
+.header-rule {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 18px;
+}
+.header-rule-line { width: 32px; height: 1px; background: var(--gold); opacity: 0.45; }
+.header-rule-diamond {
+  width: 5px; height: 5px;
+  background: var(--gold);
+  border-radius: 1px;
+  transform: rotate(45deg);
+  opacity: 0.7;
+}
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px; font-weight: 700;
+  color: var(--text); line-height: 1.05;
+  letter-spacing: -0.5px;
+}
+h1 em { font-style: italic; font-weight: 600; color: var(--gold); }
+.sub {
+  margin-top: 10px; font-size: 13px;
+  font-weight: 400; font-style: italic; color: var(--text2); line-height: 1.5;
+  font-family: 'Cormorant Garamond', serif; font-size: 16px;
+}
+.datechip {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-top: 18px;
+  background: var(--bg3); border: 1px solid var(--line2);
+  border-radius: 99px; padding: 7px 14px;
+  font-size: 12px; font-weight: 300; color: var(--text2);
+  transition: background 0.35s, border-color 0.35s;
+}
+
+/* ─── CARDS ─── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 22px 18px;
+  margin-bottom: 10px;
+  transition: border-color 0.3s, background 0.35s;
+  animation: up 0.55s ease both;
+}
+.card:hover { border-color: var(--line2); }
+.card:nth-child(1){animation-delay:.08s}
+.card:nth-child(2){animation-delay:.16s}
+.card:nth-child(3){animation-delay:.24s}
+
+.clabel {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+}
+.cicon {
+  width: 30px; height: 30px;
+  background: var(--gold-dim);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.35s;
+}
+.cicon svg { width: 15px; height: 15px; }
+.ctext {
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* ─── INPUTS ─── */
+.field { position: relative; }
+.field input {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 16px; font-weight: 400;
+  color: var(--text);
+  background: var(--bg3);
+  border: 1.5px solid var(--line2);
+  border-radius: var(--rs);
+  padding: 14px 16px; width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.35s, color 0.35s;
+  appearance: none; -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  caret-color: var(--gold);
+}
+.field input:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  box-shadow: 0 0 0 3px var(--gold-dim);
+}
+.field input::placeholder { color: var(--text3); }
+.field input.err { border-color: var(--red); background: var(--red-dim); }
+.field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.45) sepia(1) saturate(0.3);
+  cursor: pointer;
+}
+body.light .field input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.3) sepia(0.5) saturate(0.8);
+}
+.errmsg { font-size: 11px; color: var(--red); margin-top: 7px; display: none; }
+.errmsg.show { display: block; }
+
+/* ─── OUTLET TILES ─── */
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.tile {
+  background: var(--bg3);
+  border: 1.5px solid var(--line2);
+  border-radius: var(--rs);
+  padding: 13px 10px;
+  text-align: center;
+  font-size: 13px; font-weight: 400;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.16s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1.35;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.tile:hover { border-color: var(--gold); color: var(--text); background: var(--gold-dim); }
+.tile.on {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--gold);
+  font-weight: 500;
+}
+.tile .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--gold); flex-shrink: 0;
+  transform: scale(0); opacity: 0;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.tile.on .dot { transform: scale(1); opacity: 1; }
+.tile.full { grid-column: 1 / -1; }
+
+/* ─── TICKER ─── */
+.ticker {
+  margin-top: 14px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: var(--rs);
+  padding: 18px 20px;
+  display: flex; align-items: flex-end;
+  justify-content: space-between;
+  position: relative; overflow: hidden;
+  transition: background 0.35s;
+}
+body.light .ticker { border-color: rgba(154,114,32,0.2); }
+.ticker::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  opacity: 0.4;
+}
+.tlabel {
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--gold); opacity: 0.7; line-height: 1;
+  padding-bottom: 2px;
+}
+.tval {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 44px; font-weight: 700;
+  color: var(--gold); line-height: 1;
+  letter-spacing: -1.5px;
+}
+.tval.pop { animation: pop 0.22s ease; }
+.trm {
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 15px; font-weight: 400;
+  opacity: 0.6;
+  vertical-align: super; margin-right: 3px;
+  letter-spacing: 0.5px;
+}
+
+/* ─── BUTTON ─── */
+.btnwrap { animation: up 0.55s 0.32s ease both; margin-top: 4px; }
+.btn {
+  width: 100%;
+  background: var(--gold);
+  color: #0b0f14;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 15px; font-weight: 500;
+  letter-spacing: 0.2px;
+  border: none; border-radius: var(--r);
+  padding: 17px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: filter 0.2s, transform 0.1s, box-shadow 0.2s;
+  position: relative; overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.14) 0%, transparent 55%);
+}
+.btn:hover { filter: brightness(1.08); box-shadow: 0 8px 28px var(--gold-glow); transform: translateY(-1px); }
+.btn:active { transform: scale(0.98); }
+body.light .btn { color: #fff; }
+
+/* ─── SUCCESS ─── */
+.success {
+  display: none; flex-direction: column; align-items: center;
+  padding: 80px 24px 60px; text-align: center;
+  position: relative; z-index: 2;
+  animation: up 0.5s ease both;
+}
+.success.show { display: flex; }
+.fc.hidden { display: none; }
+
+.sring {
+  width: 84px; height: 84px; border-radius: 50%;
+  border: 1px solid rgba(62,207,142,0.25);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; margin-bottom: 26px;
+  animation: ringpop 0.5s ease both;
+}
+.sring::before {
+  content: ''; position: absolute; inset: 7px;
+  border-radius: 50%; background: var(--green-dim);
+}
+.sring svg { position: relative; z-index: 1; }
+.chk {
+  stroke-dasharray: 28; stroke-dashoffset: 28;
+  animation: draw 0.4s 0.35s ease both;
+}
+.success h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 38px; font-weight: 700;
+  letter-spacing: -0.4px; margin-bottom: 8px;
+}
+.success p {
+  font-size: 16px; font-weight: 400; font-style: italic;
+  font-family: 'Cormorant Garamond', serif;
+  color: var(--text2); line-height: 1.65; max-width: 240px;
+}
+
+.receipt {
+  margin-top: 28px;
+  background: var(--bg2); border: 1px solid var(--line2);
+  border-radius: var(--r); width: 100%; max-width: 300px; overflow: hidden;
+  transition: background 0.35s, border-color 0.35s;
+}
+.rhead {
+  background: var(--bg3); padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 8px;
+  transition: background 0.35s;
+}
+.rdot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 7px var(--green); }
+.rhtxt { font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--text2); font-weight: 500; }
+.rrow {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 18px; border-bottom: 1px solid var(--line);
+}
+.rrow:last-child { border-bottom: none; }
+.rk { font-size: 11px; color: var(--text3); letter-spacing: 0.3px; }
+.rv { font-size: 13px; font-weight: 500; color: var(--text); }
+.rv.hi {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 700; color: var(--gold);
+}
+
+.btnnew {
+  margin-top: 22px;
+  background: transparent; color: var(--text2);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 12px; font-weight: 400;
+  border: 1px solid var(--line2); border-radius: 99px;
+  padding: 9px 22px; cursor: pointer; letter-spacing: 0.3px;
+  transition: all 0.2s;
+}
+.btnnew:hover { background: var(--bg2); color: var(--text); border-color: var(--line); }
+
+/* ─── KEYFRAMES ─── */
+@keyframes up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+@keyframes ringpop {
+  from { opacity: 0; transform: scale(0.65); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="glow-top"></div>
+<div class="glow-bot"></div>
+<div class="grain"></div>
+
+<!-- THEME TOGGLE -->
+<div class="toggle-bar">
+  <button class="theme-btn" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+    <div class="theme-icon">
+      <!-- Moon (dark mode) -->
+      <svg class="icon-moon" viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round">
+        <path d="M13.5 10A6 6 0 016 2.5a6 6 0 100 11 6 6 0 007.5-3.5z"/>
+      </svg>
+      <!-- Sun (light mode) -->
+      <svg class="icon-sun" viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="8" cy="8" r="3"/>
+        <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+    </div>
+    <span id="theme-label">Light</span>
+  </button>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-rule">
+    <div class="header-rule-line"></div>
+    <div class="header-rule-diamond"></div>
+    <div class="header-rule-line"></div>
+  </div>
+  <h1>Daily <em>Sales</em> Report</h1>
+  <p class="sub">Submit your outlet figures for today.</p>
+  <div class="datechip">
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+      <rect x="2" y="3" width="12" height="12" rx="2"/>
+      <path d="M5 1v3M11 1v3M2 7h12"/>
+    </svg>
+    <span id="dchip">—</span>
+  </div>
+</div>
+
+<div class="fc">
+  <div class="wrap">
+
+    <!-- Date -->
+    <div class="card">
+      <div class="clabel">
+        <div class="cicon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round">
+            <rect x="2" y="3" width="12" height="12" rx="2"/>
+            <path d="M5 1v3M11 1v3M2 7h12"/>
+          </svg>
+        </div>
+        <span class="ctext">Date</span>
+      </div>
+      <div class="field">
+        <input type="date" id="report-date">
+      </div>
+    </div>
+
+    <!-- Outlet -->
+    <div class="card">
+      <div class="clabel">
+        <div class="cicon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5S12.5 9.75 12.5 6c0-2.49-2.01-4.5-4.5-4.5z"/>
+            <circle cx="8" cy="6" r="1.5"/>
+          </svg>
+        </div>
+        <span class="ctext">Outlet</span>
+      </div>
+      <div class="tiles">
+        <div class="tile" onclick="pick(this,'Sandakan Prima')"><span class="dot"></span>Sandakan Prima</div>
+        <div class="tile" onclick="pick(this,'Sandakan Megah')"><span class="dot"></span>Sandakan Megah</div>
+        <div class="tile" onclick="pick(this,'Lahad Datu Nipah')"><span class="dot"></span>Lahad Datu Nipah</div>
+        <div class="tile" onclick="pick(this,'Lahad Datu Perdana')"><span class="dot"></span>Lahad Datu Perdana</div>
+        <div class="tile" onclick="pick(this,'Tawau')"><span class="dot"></span>Tawau</div>
+        <div class="tile" onclick="pick(this,'Tawau Bintang')"><span class="dot"></span>Tawau Bintang</div>
+        <div class="tile full" onclick="pick(this,'Semporna')"><span class="dot"></span>Semporna</div>
+      </div>
+      <div class="errmsg" id="err-outlet" style="margin-top:10px">Please select your outlet.</div>
+    </div>
+
+    <!-- Sales -->
+    <div class="card">
+      <div class="clabel">
+        <div class="cicon">
+          <svg viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 1v14M11.5 4.5A3.5 1.8 0 008 3a3.5 1.8 0 00-3.5 1.5c0 1 .78 1.8 3.5 2.5s3.5 1.5 3.5 2.5A3.5 1.8 0 018 11a3.5 1.8 0 01-3.5-1.5"/>
+          </svg>
+        </div>
+        <span class="ctext">Total Sales (RM)</span>
+      </div>
+      <div class="field">
+        <input type="number" id="total-sales" placeholder="0.00" min="0" step="0.01"
+          oninput="tick()" inputmode="decimal">
+        <div class="errmsg" id="err-sales">Please enter a valid amount.</div>
+      </div>
+      <div class="ticker">
+        <div class="tlabel">Today's total</div>
+        <div class="tval" id="tval"><span class="trm">RM</span><span id="tnum">0.00</span></div>
+      </div>
+    </div>
+
+    <div class="btnwrap">
+      <button class="btn" onclick="go()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2.5 8h11M9 4.5l4.5 3.5L9 11.5"/>
+        </svg>
+        Submit Report
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- SUCCESS -->
+<div class="success" id="success">
+  <div class="sring">
+    <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+      <path class="chk" d="M8 15.5l5 5 9-10" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <h2>Submitted.</h2>
+  <p>Figures recorded. See you tomorrow.</p>
+  <div class="receipt">
+    <div class="rhead">
+      <div class="rdot"></div>
+      <span class="rhtxt">Confirmed</span>
+    </div>
+    <div id="rbody"></div>
+  </div>
+  <button class="btnnew" onclick="reset()">Submit another entry</button>
+</div>
+
+<script>
+  // Date init
+  const today = new Date();
+  document.getElementById('report-date').value = today.toISOString().split('T')[0];
+  document.getElementById('dchip').textContent =
+    today.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long'});
+
+  // Theme toggle
+  let isLight = false;
+  function toggleTheme() {
+    isLight = !isLight;
+    document.body.classList.toggle('light', isLight);
+    document.getElementById('theme-label').textContent = isLight ? 'Dark' : 'Light';
+  }
+
+  // Outlet
+  let outlet = '';
+  function pick(el, name) {
+    document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
+    el.classList.add('on');
+    outlet = name;
+    document.getElementById('err-outlet').classList.remove('show');
+  }
+
+  // Ticker
+  function tick() {
+    const v = parseFloat(document.getElementById('total-sales').value) || 0;
+    document.getElementById('tnum').textContent = v.toFixed(2);
+    const tv = document.getElementById('tval');
+    tv.classList.remove('pop');
+    void tv.offsetWidth;
+    tv.classList.add('pop');
+    document.getElementById('err-sales').classList.remove('show');
+    document.getElementById('total-sales').classList.remove('err');
+  }
+
+  // Submit
+  function go() {
+    let ok = true;
+    if (!outlet) { document.getElementById('err-outlet').classList.add('show'); ok = false; }
+    const s = document.getElementById('total-sales').value;
+    if (!s || parseFloat(s) < 0) {
+      document.getElementById('err-sales').classList.add('show');
+      document.getElementById('total-sales').classList.add('err');
+      ok = false;
+    }
+    if (!ok) return;
+
+    const date = document.getElementById('report-date').value;
+    const fmt = new Date(date).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'});
+    const amt = parseFloat(s).toFixed(2);
+
+    document.getElementById('rbody').innerHTML =
+      `<div class="rrow"><span class="rk">Date</span><span class="rv">${fmt}</span></div>
+       <div class="rrow"><span class="rk">Outlet</span><span class="rv">${outlet}</span></div>
+       <div class="rrow"><span class="rk">Sales</span><span class="rv hi">RM ${amt}</span></div>`;
+
+    document.querySelector('.fc').classList.add('hidden');
+    document.getElementById('success').classList.add('show');
+
+    // 🔌 Replace with your Apps Script webhook:
+    // fetch('YOUR_WEBHOOK_URL', {method:'POST', body: JSON.stringify({date, outlet, totalSales: amt})})
+    console.log('→ Sheets:', { date, outlet, totalSales: amt });
+  }
+
+  // Reset
+  function reset() {
+    document.querySelector('.fc').classList.remove('hidden');
+    document.getElementById('success').classList.remove('show');
+    document.querySelectorAll('.tile').forEach(t => t.classList.remove('on'));
+    outlet = '';
+    document.getElementById('total-sales').value = '';
+    document.getElementById('tnum').textContent = '0.00';
+  }
+</script>
+</body>
+</html>
