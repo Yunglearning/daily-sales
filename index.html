@@ -597,7 +597,7 @@ body.light .btn { color: #fff; }
     document.getElementById('total-sales').classList.remove('err');
   }
 
-  // submit
+  // Submit
   function go() {
     let ok = true;
     if (!outlet) { document.getElementById('err-outlet').classList.add('show'); ok = false; }
@@ -621,13 +621,13 @@ body.light .btn { color: #fff; }
     document.querySelector('.fc').classList.add('hidden');
     document.getElementById('success').classList.add('show');
 
-    // 🔌 Replace with your Apps Script webhook:
     fetch('https://script.google.com/macros/s/AKfycby52yr7Fm3NYuaC_NtR-9u9djE1vuF7y4x4bBKjvjEW2z0ekGR1QmfZa_F1f8aUY5_M/exec', {
-  method: 'POST',
-  mode: 'no-cors',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ date, outlet, totalSales: amt })
-});
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ date, outlet, totalSales: amt })
+    });
+  }
 
   // Reset
   function reset() {
