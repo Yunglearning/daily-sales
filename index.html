@@ -100,46 +100,7 @@ body[data-poster="light"] {
 
 /* smooth all colour transitions */
 body, .card, h1, h1 em, .sub, .datechip, .ctext, .tile,
-.ticker, .tlabel, .tval, .btn, .errmsg, .rrow, .rhead,
-.poster-btn, .toggle-bar { transition: color 0.3s, background 0.3s, border-color 0.3s; }
-.poster-btn {
-  display: flex; align-items: center; gap: 6px;
-  background: var(--bg2);
-  border: 1px dashed var(--line2);
-  border-radius: 99px;
-  padding: 6px 12px 6px 8px;
-  cursor: pointer;
-  font-family: 'Instrument Sans', sans-serif;
-  font-size: 11px; font-weight: 400;
-  color: var(--text2);
-  transition: all 0.2s;
-  -webkit-tap-highlight-color: transparent;
-  position: relative;
-}
-.poster-btn:hover { border-color: var(--gold); color: var(--gold); }
-.poster-btn input[type="file"] {
-  position: absolute; inset: 0;
-  opacity: 0; cursor: pointer; width: 100%; height: 100%;
-}
-.poster-icon {
-  width: 18px; height: 18px;
-  background: var(--bg3);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.poster-icon svg { width: 10px; height: 10px; }
-
-/* poster loaded — cards go glass */
-.poster-bg.loaded ~ * .card {
-  background: rgba(255, 252, 245, 0.78);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-.poster-bg.loaded ~ * .header {
-  background: transparent;
-}
-
+.ticker, .tlabel, .tval, .btn, .errmsg, .rrow, .rhead { transition: color 0.3s, background 0.3s, border-color 0.3s; }
 /* glows */
 .glow-top {
   position: fixed; top: -180px; left: 50%;
@@ -485,20 +446,7 @@ body.light .btn { color: #fff; }
 <div class="grain"></div>
 <div class="poster-bg" id="poster-bg"></div>
 
-<!-- POSTER UPLOAD -->
-<div class="toggle-bar">
-  <button class="poster-btn" id="poster-btn" aria-label="Upload poster">
-    <input type="file" accept="image/*" onchange="loadPoster(event)" id="poster-input">
-    <div class="poster-icon">
-      <svg viewBox="0 0 16 16" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="2" y="3" width="12" height="10" rx="2"/>
-        <path d="M2 10l3-3 2.5 2.5L10 7l4 4"/>
-        <circle cx="11" cy="6" r="1"/>
-      </svg>
-    </div>
-    <span id="poster-label">Upload poster</span>
-  </button>
-</div>
+<!-- no upload button — poster loads automatically -->
 
 <!-- HEADER -->
 <div class="header">
@@ -619,41 +567,34 @@ body.light .btn { color: #fff; }
   document.getElementById('dchip').textContent =
     today.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long'});
 
-  // Poster background — auto detects brightness and adjusts font colours
-  function loadPoster(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      const bg = document.getElementById('poster-bg');
-      bg.style.backgroundImage = `url('${ev.target.result}')`;
-      bg.classList.add('loaded');
-      document.getElementById('poster-label').textContent = 'Change poster';
+  // ── Poster: auto-load from GitHub, detect brightness, adjust colours ──
+  const POSTER_URL = 'https://yunglearning.github.io/daily-sales/poster%201.jpg';
 
-      // Sample image brightness via canvas
-      const img = new Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        const SIZE = 40; // sample at 40x40 for speed
-        canvas.width = SIZE; canvas.height = SIZE;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, SIZE, SIZE);
-        const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
-        let total = 0;
-        const pixels = SIZE * SIZE;
-        for (let i = 0; i < data.length; i += 4) {
-          // perceived brightness formula
-          total += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
-        }
-        const avg = total / pixels; // 0 = black, 255 = white
-        // If avg brightness > 140 → poster is light → use dark text
-        // If avg brightness ≤ 140 → poster is dark → use light text
-        document.body.setAttribute('data-poster', avg > 140 ? 'light' : 'dark');
-      };
-      img.src = ev.target.result;
+  function applyPoster(src) {
+    const bg = document.getElementById('poster-bg');
+    bg.style.backgroundImage = `url('${src}')`;
+    bg.classList.add('loaded');
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const SIZE = 40;
+      canvas.width = SIZE; canvas.height = SIZE;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, SIZE, SIZE);
+      const data = ctx.getImageData(0, 0, SIZE, SIZE).data;
+      let total = 0;
+      for (let i = 0; i < data.length; i += 4) {
+        total += (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114);
+      }
+      const avg = total / (SIZE * SIZE);
+      document.body.setAttribute('data-poster', avg > 140 ? 'light' : 'dark');
     };
-    reader.readAsDataURL(file);
+    img.src = src;
   }
+
+  applyPoster(POSTER_URL);
 
   // Outlet
   let outlet = '';
