@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Daily Sales · TCE Tackles</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Righteous&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+<style>
+/* ═══════════════════════════════════════
+   RESET + ROOT
+═══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow-x:hidden}
+body{
+  font-family:'Nunito',sans-serif;
+  background:#e8eaf6;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=date]::-webkit-calendar-picker-indicator{
+  filter:opacity(0.5);cursor:pointer
+}
+button{-webkit-tap-highlight-color:transparent}
+
+/* ═══════════════════════════════════════
+   CSS VARIABLES
+═══════════════════════════════════════ */
+:root{
+  /* Clay palette — warm pastel */
+  --sky:#c5d8ff;
+  --lavender:#d6ccff;
+  --mint:#b8f0e0;
+  --peach:#ffd4c2;
+  --lemon:#fff0b3;
+  --rose:#ffccd5;
+  --lilac:#e8d5ff;
+
+  /* Neumorphic base */
+  --neu-bg:#e8eaf6;
+  --neu-light:#ffffff;
+  --neu-dark:#c5c7d8;
+  --neu-shadow:6px 6px 16px #c5c7d8, -6px -6px 16px #ffffff;
+  --neu-inset:inset 4px 4px 10px #c5c7d8, inset -4px -4px 10px #ffffff;
+  --neu-pressed:inset 3px 3px 8px #b8bace, inset -3px -3px 8px #ffffff;
+
+  /* Text */
+  --ink:#3d3a5e;
+  --ink2:#6e6a94;
+  --ink3:#a8a4c8;
+
+  /* Accents */
+  --violet:#6c5ce7;
+  --teal:#00cec9;
+  --coral:#fd7a68;
+  --gold:#fdcb6e;
+  --green:#00b894;
+
+  --r:22px;
+  --r-sm:14px;
+}
+
+/* ═══════════════════════════════════════
+   BACKGROUND MESH
+═══════════════════════════════════════ */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(197,216,255,0.6) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 90%, rgba(214,204,255,0.5) 0%, transparent 50%),
+    radial-gradient(ellipse at 60% 40%, rgba(184,240,224,0.4) 0%, transparent 45%);
+  pointer-events:none;
+}
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+#app{
+  position:relative;z-index:1;
+  min-height:100vh;
+  padding-bottom:60px;
+}
+
+.page{max-width:440px;margin:0 auto;padding:0 16px}
+
+/* ═══════════════════════════════════════
+   HEADER — Clay 3D
+═══════════════════════════════════════ */
+.header{
+  padding:52px 20px 36px;
+  max-width:440px;margin:0 auto;
+  position:relative;
+}
+
+.header-blob{
+  position:absolute;
+  border-radius:50%;
+  filter:blur(40px);
+  pointer-events:none;
+}
+.blob1{width:180px;height:180px;background:rgba(108,92,231,0.18);top:-20px;right:-20px}
+.blob2{width:140px;height:140px;background:rgba(0,206,201,0.15);bottom:0;left:-10px}
+
+.header-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(12px);
+  border:1.5px solid rgba(255,255,255,0.8);
+  border-radius:99px;padding:6px 14px;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--ink2);
+  margin-bottom:14px;
+  box-shadow:0 2px 12px rgba(108,92,231,0.1);
+}
+.badge-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 8px var(--green);
+  animation:pulse 2s ease-in-out infinite;
+}
+
+.header-title{
+  font-family:'Righteous',cursive;
+  font-size:38px;
+  color:var(--ink);
+  line-height:1.05;
+  letter-spacing:-0.5px;
+}
+.header-title span{
+  display:block;
+  background:linear-gradient(135deg,var(--violet),var(--teal));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.header-sub{
+  font-size:14px;font-weight:600;color:var(--ink3);
+  margin-top:10px;line-height:1.5;
+}
+
+.date-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  margin-top:18px;
+  background:rgba(255,255,255,0.6);
+  backdrop-filter:blur(10px);
+  border:1.5px solid rgba(255,255,255,0.9);
+  border-radius:99px;padding:8px 16px;
+  font-size:12px;font-weight:700;color:var(--ink2);
+  box-shadow:
+    4px 4px 10px rgba(197,199,216,0.5),
+    -2px -2px 8px rgba(255,255,255,0.9);
+}
+
+/* ═══════════════════════════════════════
+   CLAY CARD
+═══════════════════════════════════════ */
+.clay-card{
+  background:rgba(255,255,255,0.65);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:2px solid rgba(255,255,255,0.85);
+  border-radius:28px;
+  padding:22px 20px;
+  margin-bottom:14px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:
+    0 8px 32px rgba(108,92,231,0.10),
+    0 2px 8px rgba(108,92,231,0.06),
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 -1px 0 rgba(197,199,216,0.3);
+  transform:translateZ(0);
+  transition:transform 0.2s,box-shadow 0.2s;
+  animation:slideUp 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+.clay-card:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    0 16px 40px rgba(108,92,231,0.14),
+    0 4px 12px rgba(108,92,231,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.9);
+}
+.clay-card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--card-accent,var(--violet)),var(--card-accent2,var(--teal)));
+  border-radius:28px 28px 0 0;
+  opacity:0.7;
+}
+
+/* Card label */
+.card-label{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:18px;
+}
+.label-icon{
+  width:40px;height:40px;
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  box-shadow:
+    3px 3px 8px rgba(0,0,0,0.08),
+    -2px -2px 6px rgba(255,255,255,0.9),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+}
+.label-txt{
+  font-size:10px;font-weight:800;letter-spacing:2px;
+  text-transform:uppercase;color:var(--ink3);
+}
+
+/* ═══════════════════════════════════════
+   NEUMORPHIC INPUTS
+═══════════════════════════════════════ */
+.neu-input{
+  width:100%;
+  font-family:'Nunito',sans-serif;
+  font-size:17px;font-weight:700;
+  color:var(--ink);
+  background:var(--neu-bg);
+  border:none;
+  border-radius:16px;
+  padding:14px 18px;
+  outline:none;
+  box-shadow:var(--neu-inset);
+  transition:box-shadow 0.25s,color 0.2s;
+  -webkit-appearance:none;
+}
+.neu-input:focus{
+  box-shadow:var(--neu-pressed);
+  color:var(--violet);
+}
+
+/* Sales input with RM prefix */
+.sales-wrap{position:relative}
+.sales-rm{
+  position:absolute;left:18px;top:50%;transform:translateY(-50%);
+  font-size:18px;font-weight:900;color:var(--ink3);
+  pointer-events:none;z-index:1;
+  transition:color 0.2s;
+}
+.sales-wrap.focused .sales-rm{color:var(--violet)}
+.neu-input.sales{padding-left:52px;font-size:26px}
+
+/* ═══════════════════════════════════════
+   OUTLET TILES — Clay 3D
+═══════════════════════════════════════ */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{
+  border:2.5px solid rgba(255,255,255,0.7);
+  border-radius:20px;
+  padding:14px 10px;
+  text-align:center;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:all 0.2s cubic-bezier(0.22,1,0.36,1);
+  box-shadow:
+    4px 4px 12px rgba(0,0,0,0.07),
+    -2px -2px 8px rgba(255,255,255,0.9),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+  user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.tile:active{transform:scale(0.96)!important}
+
+/* Idle state */
+.tile.idle{background:rgba(255,255,255,0.5);backdrop-filter:blur(8px)}
+
+/* Active state — each outlet colour */
+.tile.active{
+  border-color:rgba(255,255,255,0.4);
+  box-shadow:
+    0 8px 24px var(--tile-shadow,rgba(108,92,231,0.35)),
+    inset 0 1px 2px rgba(255,255,255,0.5),
+    inset 0 -2px 4px rgba(0,0,0,0.08);
+  transform:scale(1.03) translateY(-2px);
+}
+.tile.active::after{
+  content:'';
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.25) 0%,transparent 60%);
+  border-radius:18px;
+  pointer-events:none;
+}
+
+.tile-name{font-size:12.5px;font-weight:800;line-height:1.3;transition:color 0.2s}
+.tile-sub{font-size:10px;font-weight:600;margin-top:3px;transition:color 0.2s}
+.tile-check{
+  position:absolute;top:8px;right:8px;
+  width:20px;height:20px;border-radius:50%;
+  background:rgba(255,255,255,0.35);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* ═══════════════════════════════════════
+   GLASS TICKER
+═══════════════════════════════════════ */
+.ticker{
+  margin-top:16px;
+  background:linear-gradient(135deg,rgba(108,92,231,0.85),rgba(0,206,201,0.8));
+  backdrop-filter:blur(16px);
+  border:1.5px solid rgba(255,255,255,0.3);
+  border-radius:22px;
+  padding:18px 22px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:
+    0 12px 36px rgba(108,92,231,0.3),
+    0 4px 12px rgba(0,206,201,0.2),
+    inset 0 1px 2px rgba(255,255,255,0.3);
+  position:relative;overflow:hidden;
+  animation:fadeIn 0.3s ease;
+}
+.ticker::before{
+  content:'';
+  position:absolute;top:-30px;right:-30px;
+  width:120px;height:120px;
+  background:rgba(255,255,255,0.08);
+  border-radius:50%;
+  pointer-events:none;
+}
+.ticker-lbl{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.7)}
+.ticker-val{
+  font-family:'Righteous',cursive;
+  font-size:30px;color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,0.2);
+  letter-spacing:-0.5px;
+}
+.ticker-rm{font-size:14px;font-weight:800;opacity:0.7;margin-right:2px}
+
+/* ═══════════════════════════════════════
+   SUBMIT BUTTON — Clay 3D
+═══════════════════════════════════════ */
+.submit-btn{
+  width:100%;
+  font-family:'Righteous',cursive;
+  font-size:18px;
+  color:#fff;
+  border:none;
+  border-radius:22px;
+  padding:20px;
+  cursor:pointer;
+  position:relative;overflow:hidden;
+  transition:all 0.2s cubic-bezier(0.22,1,0.36,1);
+  letter-spacing:0.5px;
+  -webkit-tap-highlight-color:transparent;
+}
+.submit-btn.ready{
+  background:linear-gradient(135deg,#6c5ce7,#00cec9);
+  box-shadow:
+    0 10px 32px rgba(108,92,231,0.4),
+    0 4px 12px rgba(0,206,201,0.2),
+    inset 0 1px 2px rgba(255,255,255,0.25),
+    inset 0 -3px 0 rgba(0,0,0,0.15);
+}
+.submit-btn.ready:active{
+  transform:scale(0.97) translateY(2px);
+  box-shadow:
+    0 4px 16px rgba(108,92,231,0.3),
+    inset 0 2px 4px rgba(0,0,0,0.15);
+}
+.submit-btn.ready::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:50%;
+  background:rgba(255,255,255,0.12);
+  border-radius:22px 22px 0 0;
+  pointer-events:none;
+}
+.submit-btn.disabled{
+  background:rgba(197,199,216,0.6);
+  color:rgba(100,100,130,0.5);
+  cursor:not-allowed;
+  box-shadow:
+    2px 2px 6px rgba(197,199,216,0.5),
+    -2px -2px 6px rgba(255,255,255,0.8);
+}
+.btn-inner{display:flex;align-items:center;justify-content:center;gap:10px;position:relative;z-index:1}
+
+/* ═══════════════════════════════════════
+   ERROR MESSAGE
+═══════════════════════════════════════ */
+.err{
+  font-size:12px;font-weight:700;color:#fd7a68;
+  margin-top:8px;padding-left:4px;
+  display:flex;align-items:center;gap:4px;
+}
+
+/* ═══════════════════════════════════════
+   SUCCESS SCREEN
+═══════════════════════════════════════ */
+.success{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 24px;
+  text-align:center;
+  position:relative;overflow:hidden;
+}
+.success-bg{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,#a29bfe 0%,#6c5ce7 40%,#00cec9 100%);
+  z-index:0;
+}
+.success-bg::after{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.success-content{position:relative;z-index:1;width:100%}
+
+.success-orb{
+  width:110px;height:110px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.15);
+  border:3px solid rgba(255,255,255,0.4);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 28px;
+  box-shadow:
+    0 0 0 12px rgba(255,255,255,0.08),
+    0 0 0 24px rgba(255,255,255,0.04),
+    0 16px 48px rgba(0,0,0,0.2);
+  animation:orbPop 0.6s cubic-bezier(0.22,1,0.36,1) both;
+  backdrop-filter:blur(8px);
+}
+.success-title{
+  font-family:'Righteous',cursive;
+  font-size:42px;color:#fff;
+  letter-spacing:-0.5px;margin-bottom:8px;
+  text-shadow:0 4px 16px rgba(0,0,0,0.2);
+  animation:slideUp 0.5s 0.2s ease both;
+}
+.success-sub{
+  font-size:16px;font-weight:600;
+  color:rgba(255,255,255,0.75);line-height:1.5;
+  animation:slideUp 0.5s 0.3s ease both;
+}
+
+/* Glass receipt card */
+.glass-receipt{
+  margin-top:28px;
+  background:rgba(255,255,255,0.15);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1.5px solid rgba(255,255,255,0.3);
+  border-radius:28px;
+  overflow:hidden;
+  width:100%;max-width:320px;
+  margin-left:auto;margin-right:auto;
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -1px 0 rgba(0,0,0,0.1);
+  animation:slideUp 0.5s 0.4s ease both;
+}
+.receipt-head{
+  padding:14px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  display:flex;align-items:center;gap:8px;
+}
+.receipt-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:#00b894;
+  box-shadow:0 0 10px #00b894;
+}
+.receipt-head-txt{
+  font-size:10px;font-weight:800;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(255,255,255,0.6);
+}
+.receipt-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:13px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.receipt-row:last-child{border-bottom:none}
+.rkey{font-size:12px;font-weight:600;color:rgba(255,255,255,0.55)}
+.rval{font-size:14px;font-weight:800;color:#fff}
+.rval.big{
+  font-family:'Righteous',cursive;
+  font-size:26px;letter-spacing:-0.5px;
+  color:#fff;
+  text-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+
+.new-btn{
+  margin-top:24px;
+  background:rgba(255,255,255,0.18);
+  backdrop-filter:blur(10px);
+  border:1.5px solid rgba(255,255,255,0.35);
+  border-radius:99px;
+  padding:13px 30px;
+  font-family:'Nunito',sans-serif;
+  font-size:15px;font-weight:800;
+  color:#fff;cursor:pointer;
+  transition:all 0.2s;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.1),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+  animation:slideUp 0.5s 0.5s ease both;
+}
+.new-btn:active{transform:scale(0.96)}
+
+/* ═══════════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════════ */
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(28px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn{
+  from{opacity:0;transform:scale(0.95)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(0,184,148,0.5)}
+  50%{box-shadow:0 0 0 6px rgba(0,184,148,0)}
+}
+@keyframes orbPop{
+  0%{transform:scale(0.5);opacity:0}
+  70%{transform:scale(1.08)}
+  100%{transform:scale(1);opacity:1}
+}
+@keyframes checkDraw{
+  from{stroke-dashoffset:70}
+  to{stroke-dashoffset:0}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Ticker transition */
+.ticker-fade-enter-active{transition:all 0.3s cubic-bezier(0.22,1,0.36,1)}
+.ticker-fade-leave-active{transition:all 0.2s ease}
+.ticker-fade-enter-from{opacity:0;transform:scale(0.95) translateY(8px)}
+.ticker-fade-leave-to{opacity:0;transform:scale(0.95) translateY(8px)}
+
+/* Stagger delays */
+.clay-card:nth-child(1){animation-delay:0.05s}
+.clay-card:nth-child(2){animation-delay:0.12s}
+.clay-card:nth-child(3){animation-delay:0.19s}
+.clay-card:nth-child(4){animation-delay:0.26s}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ── FORM SCREEN ── -->
+<div v-if="screen==='form'">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-blob blob1"></div>
+    <div class="header-blob blob2"></div>
+    <div class="header-badge">
+      <div class="badge-dot"></div>
+      TCE Tackles · Sales
+    </div>
+    <div class="header-title">
+      Daily<span>Sales Report</span>
+    </div>
+    <div class="header-sub">Submit your outlet figures for today</div>
+    <div class="date-chip">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <rect x="2" y="3" width="12" height="12" rx="2.5"/>
+        <path d="M5 1v3M11 1v3M2 7h12"/>
+      </svg>
+      {{ todayLabel }}
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- STEP 1: DATE -->
+    <div class="clay-card" style="--card-accent:#6c5ce7;--card-accent2:#a29bfe">
+      <div class="card-label">
+        <div class="label-icon" style="background:linear-gradient(135deg,#e8e0ff,#d6ccff)">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#6c5ce7" stroke-width="2" stroke-linecap="round">
+            <rect x="3" y="4" width="14" height="14" rx="3"/>
+            <path d="M7 2v3M13 2v3M3 8h14"/>
+          </svg>
+        </div>
+        <span class="label-txt">Date</span>
+      </div>
+      <input
+        type="date"
+        v-model="date"
+        class="neu-input"
+      />
+    </div>
+
+    <!-- STEP 2: OUTLET -->
+    <div class="clay-card" style="--card-accent:#fd7a68;--card-accent2:#fdcb6e">
+      <div class="card-label">
+        <div class="label-icon" style="background:linear-gradient(135deg,#ffeee8,#ffd4c2)">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#fd7a68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 2C7.24 2 5 4.24 5 7c0 4.5 5 11 5 11s5-6.5 5-11c0-2.76-2.24-5-5-5z"/>
+            <circle cx="10" cy="7" r="2.2"/>
+          </svg>
+        </div>
+        <span class="label-txt">Select Outlet</span>
+      </div>
+
+      <div class="tiles">
+        <div
+          v-for="(o,i) in outlets"
+          :key="o"
+          class="tile"
+          :class="outlet===o ? 'active' : 'idle'"
+          :style="tileStyle(o,i)"
+          @click="selectOutlet(o)"
+        >
+          <div v-if="outlet===o" class="tile-check">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M2 6l3 3 5-6" :stroke="tileColors[i].text" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tile-name" :style="{color: outlet===o ? tileColors[i].text : '#5a5780'}">{{ o }}</div>
+          <div class="tile-sub" :style="{color: outlet===o ? tileColors[i].text+'bb' : '#a8a4c8'}">
+            {{ outlet===o ? '✓ Selected' : 'Tap to select' }}
+          </div>
+        </div>
+      </div>
+      <div v-if="errors.outlet" class="err">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fd7a68" stroke-width="2"><circle cx="6" cy="6" r="5"/><path d="M6 4v3M6 8.5v.5"/></svg>
+        {{ errors.outlet }}
+      </div>
+    </div>
+
+    <!-- STEP 3: SALES -->
+    <div class="clay-card" style="--card-accent:#00cec9;--card-accent2:#55efc4">
+      <div class="card-label">
+        <div class="label-icon" style="background:linear-gradient(135deg,#d4fff8,#b8f0e0)">
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#00b894" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="10" cy="10" r="8"/>
+            <path d="M10 5v10M12.5 7.5A2.5 1.5 0 0010 6a2.5 1.5 0 00-2.5 1.5c0 .83.56 1.5 2.5 2s2.5 1.17 2.5 2A2.5 1.5 0 0110 13a2.5 1.5 0 01-2.5-1.5"/>
+          </svg>
+        </div>
+        <span class="label-txt">Total Sales (RM)</span>
+      </div>
+
+      <div class="sales-wrap" :class="{focused: salesFocus}">
+        <div class="sales-rm">RM</div>
+        <input
+          type="number"
+          inputmode="decimal"
+          placeholder="0.00"
+          min="0" step="0.01"
+          v-model="sales"
+          class="neu-input sales"
+          :style="{color: salesFocus ? 'var(--violet)' : 'var(--ink)'}"
+          @focus="salesFocus=true"
+          @blur="salesFocus=false"
+        />
+      </div>
+      <div v-if="errors.sales" class="err">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fd7a68" stroke-width="2"><circle cx="6" cy="6" r="5"/><path d="M6 4v3M6 8.5v.5"/></svg>
+        {{ errors.sales }}
+      </div>
+
+      <!-- Glass ticker -->
+      <transition name="ticker-fade">
+        <div v-if="salesNum > 0" class="ticker">
+          <div>
+            <div class="ticker-lbl">Today's total</div>
+          </div>
+          <div class="ticker-val">
+            <span class="ticker-rm">RM</span>{{ fmtSales }}
+          </div>
+        </div>
+      </transition>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="clay-card" style="--card-accent:#a29bfe;--card-accent2:#6c5ce7;padding:20px">
+      <button
+        class="submit-btn"
+        :class="isReady && !loading ? 'ready' : 'disabled'"
+        :disabled="!isReady || loading"
+        @click="submit"
+      >
+        <div class="btn-inner">
+          <svg v-if="loading" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation:spin 0.8s linear infinite">
+            <path d="M11 2a9 9 0 019 9" opacity="0.4"/>
+            <path d="M20 11a9 9 0 01-9 9"/>
+          </svg>
+          <svg v-else-if="isReady" width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 11h14M12 5l7 6-7 6"/>
+          </svg>
+          <svg v-else width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="9"/>
+            <path d="M11 7v4M11 15v.5"/>
+          </svg>
+          {{ loading ? 'Submitting...' : isReady ? 'Submit Report' : 'Fill in all fields' }}
+        </div>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SUCCESS SCREEN ── -->
+<div v-else-if="screen==='success' && result" class="success">
+  <div class="success-bg"></div>
+  <div class="success-content">
+    <div class="success-orb" style="animation:orbPop 0.6s cubic-bezier(0.22,1,0.36,1) both, float 3s 0.8s ease-in-out infinite">
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+        <path
+          d="M14 26l9 9 15-18"
+          stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+          style="stroke-dasharray:70;stroke-dashoffset:70;animation:checkDraw 0.6s 0.4s cubic-bezier(0.22,1,0.36,1) forwards"
+        />
+      </svg>
+    </div>
+    <div class="success-title">Done!</div>
+    <div class="success-sub">Your sales figures have<br>been recorded successfully.</div>
+
+    <div class="glass-receipt">
+      <div class="receipt-head">
+        <div class="receipt-dot"></div>
+        <span class="receipt-head-txt">Confirmed</span>
+      </div>
+      <div class="receipt-row">
+        <span class="rkey">Date</span>
+        <span class="rval">{{ result.date }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="rkey">Outlet</span>
+        <span class="rval">{{ result.outlet }}</span>
+      </div>
+      <div class="receipt-row">
+        <span class="rkey">Total Sales</span>
+        <span class="rval big">RM {{ result.sales }}</span>
+      </div>
+    </div>
+
+    <button class="new-btn" @click="reset">Submit another entry</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const WEBHOOK='https://script.google.com/macros/s/AKfycby52yr7Fm3NYuaC_NtR-9u9djE1vuF7y4x4bBKjvjEW2z0ekGR1QmfZa_F1f8aUY5_M/exec';
+const POSTER='https://yunglearning.github.io/daily-sales/poster%201.jpg';
+
+const OUTLET_LIST=[
+  'Sandakan Prima','Sandakan Megah',
+  'Lahad Datu Nipah','Lahad Datu Perdana',
+  'Tawau','Tawau Bintang','Semporna'
+];
+
+const TILE_COLORS=[
+  {bg:'#c5d8ff',grad:'linear-gradient(135deg,#b3c8ff,#d6e8ff)',text:'#3461cc',shadow:'rgba(52,97,204,0.35)'},
+  {bg:'#ffccd5',grad:'linear-gradient(135deg,#ffb3c1,#ffdde5)',text:'#c4184f',shadow:'rgba(196,24,79,0.35)'},
+  {bg:'#b8f0e0',grad:'linear-gradient(135deg,#90e8cc,#d0f7ec)',text:'#0a7a5a',shadow:'rgba(10,122,90,0.35)'},
+  {bg:'#ffd4c2',grad:'linear-gradient(135deg,#ffc0a8,#ffe8dc)',text:'#c45a20',shadow:'rgba(196,90,32,0.35)'},
+  {bg:'#d6ccff',grad:'linear-gradient(135deg,#c0b2ff,#e8e0ff)',text:'#5a3cc4',shadow:'rgba(90,60,196,0.35)'},
+  {bg:'#fff0b3',grad:'linear-gradient(135deg,#ffe88a,#fff8d6)',text:'#9a7000',shadow:'rgba(154,112,0,0.35)'},
+  {bg:'#ffccd5',grad:'linear-gradient(135deg,#ffb3c1,#ffdde5)',text:'#c4184f',shadow:'rgba(196,24,79,0.35)'},
+];
+
+const {createApp}=Vue;
+createApp({
+  data(){
+    const now=new Date();
+    return{
+      screen:'form',
+      date:now.toISOString().split('T')[0],
+      outlet:'',
+      sales:'',
+      errors:{},
+      loading:false,
+      salesFocus:false,
+      result:null,
+      outlets:OUTLET_LIST,
+      tileColors:TILE_COLORS,
+      todayLabel:now.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),
+    }
+  },
+  computed:{
+    salesNum(){return parseFloat(this.sales)||0},
+    fmtSales(){
+      return this.salesNum.toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})
+    },
+    isReady(){
+      const s=parseFloat(this.sales);
+      return !!(this.outlet && this.sales !== '' && !isNaN(s) && s >= 0);
+    },
+  },
+  methods:{
+    tileStyle(o,i){
+      const c=TILE_COLORS[i];
+      const active=this.outlet===o;
+      const base={'grid-column': i===6 ? '1 / -1' : undefined};
+      return active
+        ? {...base, background:c.grad, '--tile-shadow':c.shadow}
+        : {...base, background:'rgba(255,255,255,0.55)'}
+    },
+    selectOutlet(o){
+      this.outlet=o;
+      if(this.errors.outlet) this.errors.outlet='';
+    },
+    validate(){
+      const e={};
+      if(!this.outlet) e.outlet='Please select your outlet';
+      const s=parseFloat(this.sales);
+      if(this.sales===''||isNaN(s)||s<0) e.sales='Please enter a valid sales amount';
+      this.errors=e;
+      return !Object.keys(e).length;
+    },
+    async submit(){
+      if(!this.validate()) return;
+      this.loading=true;
+      try{
+        await fetch(WEBHOOK,{
+          method:'POST',mode:'no-cors',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({date:this.date,outlet:this.outlet,totalSales:parseFloat(this.sales).toFixed(2)})
+        });
+      }catch(e){}
+      const fmt=new Date(this.date).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'});
+      this.result={
+        date:fmt,
+        outlet:this.outlet,
+        sales:parseFloat(this.sales).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})
+      };
+      this.loading=false;
+      this.screen='success';
+    },
+    reset(){
+      this.screen='form';
+      this.outlet='';this.sales='';this.errors={};this.result=null;
+      this.date=new Date().toISOString().split('T')[0];
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
