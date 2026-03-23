@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Daily Sales · TCE Tackles</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;overflow-x:hidden}
+body{
+  font-family:'Inter',sans-serif;
+  background:#F5EDE6;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  padding-bottom:60px;
+}
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+input[type=date]::-webkit-calendar-picker-indicator{filter:opacity(0.4);cursor:pointer}
+button{-webkit-tap-highlight-color:transparent;font-family:'Inter',sans-serif}
+textarea{font-family:'Inter',sans-serif}
+
+/* ── TOKENS ── */
+:root{
+  --bg:#F5EDE6;
+  --card:rgba(255,255,255,0.82);
+  --card-solid:#ffffff;
+  --blue:#A7C7E7;
+  --blue-dk:#6FABD4;
+  --blue-lt:#EBF4FB;
+  --green:#B8E0D2;
+  --green-dk:#68B5A0;
+  --green-lt:#E8F5F1;
+  --yellow:#F6D186;
+  --yellow-dk:#D4A73A;
+  --yellow-lt:#FEF6E4;
+  --red:#F5B7B1;
+  --red-dk:#D4736A;
+  --red-lt:#FDEDEB;
+  --ink:#3D2E28;
+  --ink2:#7A6860;
+  --ink3:#B4A49A;
+  --shadow:0 4px 24px rgba(100,70,50,0.10),0 1px 4px rgba(100,70,50,0.06);
+  --shadow-lg:0 12px 40px rgba(100,70,50,0.15),0 3px 8px rgba(100,70,50,0.08);
+  --r:22px;
+  --r-sm:14px;
+}
+
+/* ── BG texture ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 10%,rgba(167,199,231,0.25) 0%,transparent 55%),
+    radial-gradient(ellipse at 85% 85%,rgba(184,224,210,0.22) 0%,transparent 50%),
+    radial-gradient(ellipse at 50% 55%,rgba(246,209,134,0.10) 0%,transparent 55%);
+  pointer-events:none;
+}
+
+/* ── LAYOUT ── */
+#app{position:relative;z-index:1;min-height:100vh}
+.page{max-width:420px;margin:0 auto;padding:0 18px}
+
+/* ── HEADER ── */
+.header{
+  padding:52px 18px 22px;
+  max-width:420px;margin:0 auto;
+}
+.h-eyebrow{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--card);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:99px;padding:5px 14px 5px 8px;
+  margin-bottom:16px;
+  box-shadow:var(--shadow);
+}
+.h-eye-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green-dk);
+  box-shadow:0 0 6px rgba(104,181,160,0.6);
+  animation:breathe 2.5s ease-in-out infinite;
+}
+.h-eye-txt{font-size:11px;font-weight:600;letter-spacing:0.6px;color:var(--ink2)}
+.h-title{
+  font-size:34px;font-weight:800;
+  color:var(--ink);line-height:1.05;
+  letter-spacing:-0.8px;
+}
+.h-title em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--blue-dk),var(--green-dk));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.h-sub{font-size:13px;font-weight:400;color:var(--ink3);margin-top:8px;line-height:1.55}
+.h-chip{
+  display:inline-flex;align-items:center;gap:7px;
+  margin-top:18px;
+  background:var(--card);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:99px;padding:8px 16px;
+  font-size:12px;font-weight:600;color:var(--ink2);
+  box-shadow:var(--shadow);
+  letter-spacing:0.1px;
+}
+
+/* ── CARDS ── */
+.card{
+  background:var(--card);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:var(--r);
+  padding:20px 20px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+  transition:box-shadow 0.22s,transform 0.22s;
+  animation:cardUp 0.45s cubic-bezier(0.22,1,0.36,1) both;
+}
+.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px)}
+/* top shimmer line */
+.card::after{
+  content:'';
+  position:absolute;top:0;left:12%;right:12%;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.9),transparent);
+  border-radius:0 0 3px 3px;
+  pointer-events:none;
+}
+.card:nth-child(1){animation-delay:0.04s}
+.card:nth-child(2){animation-delay:0.10s}
+.card:nth-child(3){animation-delay:0.16s}
+.card:nth-child(4){animation-delay:0.22s}
+
+.card-head{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.card-icon{
+  width:38px;height:38px;border-radius:13px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  box-shadow:0 2px 8px rgba(100,70,50,0.08);
+}
+.card-lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ink3)}
+
+/* ── DATE INPUT ── */
+.date-inp{
+  width:100%;
+  font-family:'Inter',sans-serif;
+  font-size:16px;font-weight:600;color:var(--ink);
+  background:rgba(245,237,230,0.6);
+  border:1.5px solid rgba(255,255,255,0.6);
+  border-radius:var(--r-sm);
+  padding:13px 18px;outline:none;
+  transition:all 0.22s;
+  box-shadow:inset 0 1px 3px rgba(100,70,50,0.06);
+  -webkit-appearance:none;
+}
+.date-inp:focus{
+  border-color:var(--blue-dk);
+  background:rgba(255,255,255,0.9);
+  box-shadow:0 0 0 3px rgba(111,171,212,0.18),inset 0 1px 3px rgba(100,70,50,0.04);
+  transform:none;
+}
+
+/* ── OUTLET TILES ── */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.tile{
+  background:rgba(245,237,230,0.65);
+  border:1.5px solid rgba(255,255,255,0.7);
+  border-radius:18px;
+  padding:13px 10px;
+  text-align:center;cursor:pointer;
+  transition:all 0.2s cubic-bezier(0.22,1,0.36,1);
+  user-select:none;-webkit-tap-highlight-color:transparent;
+  position:relative;
+  box-shadow:0 2px 8px rgba(100,70,50,0.05);
+}
+/* button press scale */
+.tile:active{transform:scale(0.93)!important}
+.tile.on{
+  background:rgba(167,199,231,0.45);
+  border-color:rgba(111,171,212,0.6);
+  box-shadow:0 4px 18px rgba(111,171,212,0.28);
+  transform:scale(1.025) translateY(-1px);
+}
+.tile.full{grid-column:1/-1}
+.tile-name{font-size:12.5px;font-weight:700;color:var(--ink2);line-height:1.3;transition:color 0.15s}
+.tile.on .tile-name{color:#3A6E96;font-weight:700}
+.tile-status{font-size:10px;font-weight:500;color:var(--ink3);margin-top:2px;transition:color 0.15s}
+.tile.on .tile-status{color:var(--blue-dk);font-weight:600}
+.tile-tick{
+  position:absolute;top:7px;right:8px;
+  width:17px;height:17px;border-radius:50%;
+  background:var(--blue-dk);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transform:scale(0);
+  transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.tile.on .tile-tick{opacity:1;transform:scale(1)}
+
+/* ── SALES INPUT ── */
+.sales-row{display:flex;align-items:baseline;gap:6px;padding:2px 0}
+.sales-prefix{
+  font-size:18px;font-weight:700;color:var(--ink3);
+  flex-shrink:0;transition:color 0.2s;
+  padding-bottom:3px;
+}
+.sales-prefix.on{color:var(--blue-dk)}
+.sales-inp{
+  flex:1;min-width:0;
+  font-family:'Inter',sans-serif;
+  font-size:36px;font-weight:800;
+  color:var(--ink);
+  background:transparent;border:none;outline:none;
+  caret-color:var(--blue-dk);
+  transition:color 0.2s;
+  letter-spacing:-1px;
+}
+.sales-inp::placeholder{color:var(--ink3);opacity:0.35;font-weight:400;font-size:30px;letter-spacing:-0.5px}
+.underline{
+  height:2px;border-radius:99px;margin-top:10px;
+  background:rgba(100,70,50,0.08);
+  transition:all 0.25s;
+}
+.underline.on{background:linear-gradient(90deg,var(--blue-dk),var(--green-dk))}
+
+/* ── TICKER ── */
+.ticker{
+  margin-top:14px;
+  background:linear-gradient(135deg,rgba(111,171,212,0.9),rgba(104,181,160,0.85));
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,0.3);
+  border-radius:18px;
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 8px 28px rgba(111,171,212,0.35);
+  animation:tickIn 0.32s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes tickIn{from{opacity:0;transform:scale(0.95) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.tk-lbl{font-size:10px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,0.72)}
+.tk-val{font-size:26px;font-weight:800;color:#fff;letter-spacing:-0.5px}
+.tk-rm{font-size:13px;font-weight:500;opacity:0.65;margin-right:3px}
+
+/* ── SUBMIT ROW ── */
+.submit-row{
+  background:var(--card);
+  backdrop-filter:blur(16px);
+  border:1px solid rgba(255,255,255,0.75);
+  border-radius:99px;
+  padding:8px 8px 8px 22px;
+  margin-bottom:12px;
+  box-shadow:var(--shadow);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  animation:cardUp 0.45s 0.26s cubic-bezier(0.22,1,0.36,1) both;
+  transition:box-shadow 0.22s;
+}
+.submit-row:hover{box-shadow:var(--shadow-lg)}
+.submit-lbl{
+  font-size:14px;font-weight:600;color:var(--ink3);
+  flex:1;line-height:1.4;transition:color 0.2s;
+}
+.submit-lbl.ready{color:var(--ink);font-weight:700}
+.submit-btn{
+  width:54px;height:54px;border-radius:50%;
+  border:none;cursor:pointer;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s cubic-bezier(0.22,1,0.36,1);
+  background:rgba(200,200,200,0.3);
+  box-shadow:none;
+}
+/* button press */
+.submit-btn:active{transform:scale(0.9)!important}
+.submit-btn.ready{
+  background:linear-gradient(135deg,var(--blue-dk),var(--green-dk));
+  box-shadow:0 8px 24px rgba(111,171,212,0.45);
+  transform:scale(1);
+}
+.submit-btn.ready:hover{transform:scale(1.05)}
+.submit-btn.ready:active{transform:scale(0.93)!important}
+
+/* ── ERROR ── */
+.err{font-size:11px;font-weight:600;color:var(--red-dk);margin-top:8px;padding-left:2px;display:flex;align-items:center;gap:4px}
+
+/* ── SUCCESS SCREEN ── */
+.success{
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 24px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.s-bg{
+  position:absolute;inset:0;z-index:0;
+  background:linear-gradient(155deg,#d4ecf7 0%,#B8E0D2 40%,#c8e6d4 70%,#e8f0d8 100%);
+}
+.s-bg-circle{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,0.18);
+  pointer-events:none;
+}
+.s-content{position:relative;z-index:1;width:100%;max-width:340px;margin:0 auto}
+
+/* success orb */
+.s-orb{
+  width:100px;height:100px;border-radius:50%;
+  background:rgba(255,255,255,0.25);
+  border:2.5px solid rgba(255,255,255,0.5);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 24px;
+  box-shadow:
+    0 0 0 16px rgba(255,255,255,0.08),
+    0 16px 48px rgba(104,181,160,0.3);
+  backdrop-filter:blur(8px);
+  animation:orbBounce 0.6s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes orbBounce{
+  0%{transform:scale(0.4);opacity:0}
+  65%{transform:scale(1.08)}
+  100%{transform:scale(1);opacity:1}
+}
+.s-title{
+  font-size:38px;font-weight:800;color:var(--ink);
+  letter-spacing:-1px;margin-bottom:8px;
+  animation:fadeUp 0.4s 0.18s ease both;
+}
+.s-sub{
+  font-size:14px;font-weight:400;color:var(--ink2);
+  line-height:1.6;
+  animation:fadeUp 0.4s 0.26s ease both;
+}
+/* glass receipt */
+.receipt{
+  margin-top:24px;
+  background:rgba(255,255,255,0.35);
+  backdrop-filter:blur(20px);
+  border:1.5px solid rgba(255,255,255,0.55);
+  border-radius:24px;overflow:hidden;
+  box-shadow:0 12px 40px rgba(0,0,0,0.08),inset 0 1px 0 rgba(255,255,255,0.7);
+  animation:fadeUp 0.4s 0.34s ease both;
+}
+.r-head{
+  padding:13px 20px;
+  border-bottom:1px solid rgba(255,255,255,0.35);
+  display:flex;align-items:center;gap:8px;
+}
+.r-dot{width:8px;height:8px;border-radius:50%;background:var(--green-dk);box-shadow:0 0 8px rgba(104,181,160,0.6)}
+.r-ht{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(60,90,70,0.6)}
+.r-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 20px;border-bottom:1px solid rgba(255,255,255,0.2);
+}
+.r-row:last-child{border-bottom:none}
+.rk{font-size:12px;font-weight:500;color:rgba(60,90,70,0.55)}
+.rv{font-size:14px;font-weight:700;color:var(--ink)}
+.rv.big{font-size:24px;font-weight:800;letter-spacing:-0.5px;color:var(--ink)}
+
+.s-again{
+  margin-top:20px;
+  background:rgba(255,255,255,0.3);
+  backdrop-filter:blur(10px);
+  border:1.5px solid rgba(255,255,255,0.5);
+  border-radius:99px;padding:13px 28px;
+  font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:700;color:var(--ink);
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(0,0,0,0.06);
+  transition:all 0.2s cubic-bezier(0.22,1,0.36,1);
+  animation:fadeUp 0.4s 0.42s ease both;
+}
+.s-again:hover{background:rgba(255,255,255,0.5);transform:translateY(-1px)}
+.s-again:active{transform:scale(0.96)}
+
+/* ── CREDIT ── */
+.credit{
+  position:fixed;bottom:16px;left:0;right:0;
+  text-align:center;z-index:20;pointer-events:none;
+}
+.credit-pill{
+  display:inline-flex;align-items:center;
+  background:rgba(255,255,255,0.72);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.8);
+  border-radius:99px;padding:5px 14px;
+  font-size:11px;font-weight:600;color:var(--ink3);
+  box-shadow:var(--shadow);
+}
+.credit-pill b{color:var(--blue-dk);font-weight:700}
+
+/* ── KEYFRAMES ── */
+@keyframes cardUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes breathe{0%,100%{box-shadow:0 0 0 0 rgba(104,181,160,0.6)}50%{box-shadow:0 0 0 5px rgba(104,181,160,0)}}
+@keyframes checkDraw{from{stroke-dashoffset:60}to{stroke-dashoffset:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ticker transition */
+.tf-enter-active{transition:all 0.32s cubic-bezier(0.22,1,0.36,1)}
+.tf-leave-active{transition:all 0.2s ease}
+.tf-enter-from,.tf-leave-to{opacity:0;transform:scale(0.94) translateY(8px)}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- CREDIT -->
+<div class="credit">
+  <div class="credit-pill">by <b>Yung</b></div>
+</div>
+
+<!-- ════ FORM ════ -->
+<div v-if="screen==='form'">
+  <!-- Header -->
+  <div class="header">
+    <div class="h-eyebrow">
+      <div class="h-eye-dot"></div>
+      <span class="h-eye-txt">TCE Tackles · Daily Report</span>
+    </div>
+    <div class="h-title">Daily <em>Sales</em><br>Report</div>
+    <div class="h-sub">Submit your outlet figures for today</div>
+    <div class="h-chip">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="2" y="3" width="12" height="12" rx="2.5"/>
+        <path d="M5 1v3M11 1v3M2 7h12"/>
+      </svg>
+      {{ todayLabel }}
+    </div>
+  </div>
+
+  <div class="page">
+
+    <!-- DATE CARD -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:var(--blue-lt)">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="var(--blue-dk)" stroke-width="1.8" stroke-linecap="round">
+            <rect x="2" y="3" width="12" height="12" rx="2.5"/>
+            <path d="M5 1v3M11 1v3M2 7h12"/>
+          </svg>
+        </div>
+        <span class="card-lbl">Date</span>
+      </div>
+      <input type="date" v-model="date" class="date-inp"/>
+    </div>
+
+    <!-- OUTLET CARD -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:var(--red-lt)">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="var(--red-dk)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 1.5C5.51 1.5 3.5 3.51 3.5 6c0 3.75 4.5 8.5 4.5 8.5S12.5 9.75 12.5 6c0-2.49-2.01-4.5-4.5-4.5z"/>
+            <circle cx="8" cy="6" r="1.5"/>
+          </svg>
+        </div>
+        <span class="card-lbl">Outlet</span>
+      </div>
+      <div class="tiles">
+        <div
+          v-for="(o,i) in outlets" :key="o"
+          class="tile"
+          :class="[outlet===o?'on':'', i===6?'full':'']"
+          @click="pick(o)"
+        >
+          <div class="tile-tick">
+            <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
+              <path d="M2 5l2.5 2.5L8 2.5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="tile-name">{{ o }}</div>
+          <div class="tile-status">{{ outlet===o ? '✓ selected' : 'tap to select' }}</div>
+        </div>
+      </div>
+      <div v-if="errors.outlet" class="err">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--red-dk)" stroke-width="1.8"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8v.5"/></svg>
+        {{ errors.outlet }}
+      </div>
+    </div>
+
+    <!-- SALES CARD -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-icon" style="background:var(--green-lt)">
+          <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="var(--green-dk)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 4v8M10 6A2 1.2 0 008 5a2 1.2 0 00-2 1.2c0 .66.44 1.2 2 1.8s2 1.14 2 1.8A2 1.2 0 018 11a2 1.2 0 01-2-1.2"/>
+          </svg>
+        </div>
+        <span class="card-lbl">Total Sales (RM)</span>
+      </div>
+      <div class="sales-row">
+        <span class="sales-prefix" :class="{on:salesFocus||salesNum>0}">RM</span>
+        <input
+          type="number"
+          inputmode="decimal"
+          placeholder="0.00"
+          min="0" step="0.01"
+          v-model="sales"
+          class="sales-inp"
+          @focus="salesFocus=true"
+          @blur="salesFocus=false"
+        />
+      </div>
+      <div class="underline" :class="{on:salesFocus||salesNum>0}"></div>
+      <div v-if="errors.sales" class="err">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="var(--red-dk)" stroke-width="1.8"><circle cx="6" cy="6" r="5"/><path d="M6 4v2.5M6 8v.5"/></svg>
+        {{ errors.sales }}
+      </div>
+      <transition name="tf">
+        <div v-if="salesNum>0" class="ticker">
+          <div class="tk-lbl">Today's total</div>
+          <div class="tk-val"><span class="tk-rm">RM</span>{{ fmtSales }}</div>
+        </div>
+      </transition>
+    </div>
+
+    <!-- SUBMIT ROW -->
+    <div class="submit-row">
+      <span class="submit-lbl" :class="{ready:isReady}">
+        {{ loading ? 'Submitting…' : isReady ? 'All set — tap to submit' : 'Fill in all fields above' }}
+      </span>
+      <button
+        class="submit-btn"
+        :class="{ready: isReady && !loading}"
+        :disabled="!isReady || loading"
+        @click="submit"
+      >
+        <!-- loading spinner -->
+        <svg v-if="loading" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" style="animation:spin 0.8s linear infinite">
+          <path d="M12 2a10 10 0 0110 10" opacity="0.3"/>
+          <path d="M22 12a10 10 0 01-10 10"/>
+        </svg>
+        <!-- arrow -->
+        <svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none"
+          :stroke="isReady?'#fff':'var(--ink3)'"
+          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════ SUCCESS ════ -->
+<div v-else-if="screen==='success' && result" class="success">
+  <div class="s-bg">
+    <div class="s-bg-circle" style="width:280px;height:280px;top:-80px;right:-60px;opacity:0.5"></div>
+    <div class="s-bg-circle" style="width:180px;height:180px;bottom:-40px;left:-50px;opacity:0.4"></div>
+    <div class="s-bg-circle" style="width:100px;height:100px;top:40%;left:20%;opacity:0.3"></div>
+  </div>
+  <div class="s-content">
+    <!-- Animated orb -->
+    <div class="s-orb">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <path
+          d="M13 24l8 8 14-16"
+          stroke="var(--ink)"
+          stroke-width="3.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          style="stroke-dasharray:60;stroke-dashoffset:60;animation:checkDraw 0.55s 0.4s cubic-bezier(0.22,1,0.36,1) forwards"
+        />
+      </svg>
+    </div>
+
+    <div class="s-title">All done! 🎉</div>
+    <div class="s-sub">
+      Today's sales report has been<br>submitted successfully.
+    </div>
+
+    <!-- Receipt -->
+    <div class="receipt">
+      <div class="r-head">
+        <div class="r-dot"></div>
+        <span class="r-ht">Confirmed</span>
+      </div>
+      <div class="r-row">
+        <span class="rk">Date</span>
+        <span class="rv">{{ result.date }}</span>
+      </div>
+      <div class="r-row">
+        <span class="rk">Outlet</span>
+        <span class="rv">{{ result.outlet }}</span>
+      </div>
+      <div class="r-row" style="border-bottom:none">
+        <span class="rk">Total Sales</span>
+        <span class="rv big">RM {{ result.sales }}</span>
+      </div>
+    </div>
+
+    <button class="s-again" @click="reset">Submit another entry</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+const WH='https://script.google.com/macros/s/AKfycby52yr7Fm3NYuaC_NtR-9u9djE1vuF7y4x4bBKjvjEW2z0ekGR1QmfZa_F1f8aUY5_M/exec';
+const{createApp}=Vue;
+createApp({
+  data(){
+    const n=new Date();
+    return{
+      screen:'form',
+      date:n.toISOString().split('T')[0],
+      outlet:'',sales:'',
+      errors:{},loading:false,salesFocus:false,result:null,
+      outlets:['Sandakan Prima','Sandakan Megah','Lahad Datu Nipah','Lahad Datu Perdana','Tawau','Tawau Bintang','Semporna'],
+      todayLabel:n.toLocaleDateString('en-MY',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),
+    }
+  },
+  computed:{
+    salesNum(){return parseFloat(this.sales)||0},
+    fmtSales(){return this.salesNum.toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})},
+    isReady(){
+      const s=parseFloat(this.sales);
+      return!!(this.outlet&&this.sales!==''&&!isNaN(s)&&s>=0);
+    },
+  },
+  methods:{
+    pick(o){
+      this.outlet=o;
+      if(this.errors.outlet)this.errors.outlet='';
+    },
+    validate(){
+      const e={};
+      if(!this.outlet)e.outlet='Please select your outlet';
+      const s=parseFloat(this.sales);
+      if(this.sales===''||isNaN(s)||s<0)e.sales='Please enter a valid sales amount';
+      this.errors=e;
+      return!Object.keys(e).length;
+    },
+    async submit(){
+      if(!this.validate())return;
+      this.loading=true;
+      try{
+        await fetch(WH,{
+          method:'POST',mode:'no-cors',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({date:this.date,outlet:this.outlet,totalSales:parseFloat(this.sales).toFixed(2)})
+        });
+      }catch(e){}
+      const fmt=new Date(this.date).toLocaleDateString('en-MY',{day:'numeric',month:'short',year:'numeric'});
+      this.result={
+        date:fmt,
+        outlet:this.outlet,
+        sales:parseFloat(this.sales).toLocaleString('en-MY',{minimumFractionDigits:2,maximumFractionDigits:2})
+      };
+      this.loading=false;
+      this.screen='success';
+    },
+    reset(){
+      this.screen='form';
+      this.outlet='';this.sales='';
+      this.errors={};this.result=null;
+      this.date=new Date().toISOString().split('T')[0];
+    }
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
